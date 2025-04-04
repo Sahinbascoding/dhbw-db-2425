@@ -1,6 +1,8 @@
 blinker==1.9.0
+cffi==1.17.1
 click==8.1.8
 colorama==0.4.6
+cryptography==44.0.2
 dnspython==2.7.0
 dotenv==0.9.9
 Flask==3.1.0
@@ -11,6 +13,7 @@ MarkupSafe==3.0.2
 mysql==0.0.3
 mysql-connector-python==9.2.0
 mysqlclient==2.2.7
+pycparser==2.22
 pymongo==4.11.2
 PyMySQL==1.1.1
 python-dotenv==1.0.1
