@@ -1,3 +1,8 @@
+DROP DATABASE IF EXISTS telematik;
+CREATE DATABASE telematik;
+USE telematik;
+
+
 -- Tabelle: Fahrzeug
 CREATE TABLE Fahrzeug (
     fahrzeugid INT PRIMARY KEY,
