@@ -14,7 +14,7 @@ MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
 MONGO_PORT = os.getenv("MONGO_PORT")
 
-MYSQL_CONFIG_STRING = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB_NAME}"
+MYSQL_CONFIG_STRING = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB_NAME}?local_infile=1"
 MONGO_CONFIG_STRING = f"mongodb://{MONGO_HOST}:{MONGO_PORT}/"
 
 ALLOWED_EXTENSIONS = {'json'}
@@ -25,9 +25,9 @@ ALLOWED_EXTENSIONS = {'json'}
 #     'diagnose', 'wartung', 'unfall'
 # ]
 MYSQL_TABLES = [
-    'fahrzeug', 'fahrer', 'fahrt', 'fahrt_fahrer', 'fahrzeugparameter',
-    'beschleunigung', 'geraet', 'geraet_installation',
-    'diagnose', 'wartung'
+    'fahrzeug', 'fahrer', 'fahrer_fahrzeug', 'geraet', 'fahrt',
+    'fahrt_fahrer', 'fahrzeugparameter', 'beschleunigung',
+    'diagnose', 'wartung', 'geraet_installation'
 ]
 
 MONGO_JSON_COLLECTIONS = ['unfall']

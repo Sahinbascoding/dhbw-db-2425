@@ -1,9 +1,3 @@
--- Lade CSV-Daten in MySQL-Tabellen (mit Transaktionen)
--- Voraussetzung: local_infile=1 ist aktiv!
--- Hinweis: In MySQL muss `local_infile=1` aktiv sein. Prüfen via:
--- SHOW VARIABLES LIKE 'local_infile';
--- ggf. aktivieren in der my.cnf/my.ini oder Verbindungsoption setzen
-
 -- #TODO 1: Fahrzeug
 START TRANSACTION;
 LOAD DATA LOCAL INFILE 'data/01_fahrzeug.csv'
@@ -44,7 +38,7 @@ COMMIT;
 START TRANSACTION;
 LOAD DATA LOCAL INFILE 'data/05_fahrt.csv'
 IGNORE INTO TABLE fahrt
-FIELDS TERMINATED BY ';' 
+FIELDS TERMINATED BY ',' ENCLOSED BY '"' 
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES (fahrtid, fahrzeugid, geraetid, startzeitpunkt, endzeitpunkt, route);
 COMMIT;

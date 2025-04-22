@@ -1,18 +1,13 @@
--- Datenbank zurücksetzen
-DROP DATABASE IF EXISTS telematik;
-CREATE DATABASE telematik;
-USE telematik;
-
--- Tabelle: Fahrzeug
-CREATE TABLE Fahrzeug (
+-- 01: Fahrzeug
+CREATE TABLE IF NOT EXISTS Fahrzeug (
     fahrzeugid INT PRIMARY KEY,
     hersteller VARCHAR(100),
     modell VARCHAR(100),
     baujahr YEAR
 );
 
--- Tabelle: Fahrer
-CREATE TABLE Fahrer (
+-- 02: Fahrer
+CREATE TABLE IF NOT EXISTS Fahrer (
     fahrerid INT PRIMARY KEY,
     vorname CHAR(50),
     nachname CHAR(50),
@@ -21,29 +16,8 @@ CREATE TABLE Fahrer (
     email VARCHAR(100)
 );
 
--- Tabelle: Geraet
-CREATE TABLE Geraet (
-    geraetid INT PRIMARY KEY,
-    fahrzeugid INT,
-    geraet_typ VARCHAR(100),
-    hersteller VARCHAR(100),
-    modell VARCHAR(100),
-    FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
-);
-
--- Tabelle: Geraet_Installation
-CREATE TABLE Geraet_Installation (
-    geraet_installationid INT AUTO_INCREMENT PRIMARY KEY,
-    geraetid INT,
-    fahrzeugid INT,
-    einbau_datum DATE,
-    ausbau_datum DATE,
-    FOREIGN KEY (geraetid) REFERENCES Geraet(geraetid),
-    FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
-);
-
--- Tabelle: Fahrer_Fahrzeug
-CREATE TABLE Fahrer_Fahrzeug (
+-- 03: Fahrer_Fahrzeug
+CREATE TABLE IF NOT EXISTS Fahrer_Fahrzeug (
     fahrerid INT,
     fahrzeugid INT,
     gueltig_ab DATE,
@@ -53,8 +27,18 @@ CREATE TABLE Fahrer_Fahrzeug (
     FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
 );
 
--- Tabelle: Fahrt
-CREATE TABLE Fahrt (
+-- 04: Geraet
+CREATE TABLE IF NOT EXISTS Geraet (
+    geraetid INT PRIMARY KEY,
+    fahrzeugid INT,
+    geraet_typ VARCHAR(100),
+    hersteller VARCHAR(100),
+    modell VARCHAR(100),
+    FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
+);
+
+-- 05: Fahrt
+CREATE TABLE IF NOT EXISTS Fahrt (
     fahrtid INT PRIMARY KEY,
     fahrzeugid INT,
     geraetid INT,
@@ -65,8 +49,8 @@ CREATE TABLE Fahrt (
     FOREIGN KEY (geraetid) REFERENCES Geraet(geraetid)
 );
 
--- Tabelle: Fahrt_Fahrer
-CREATE TABLE Fahrt_Fahrer (
+-- 06: Fahrt_Fahrer
+CREATE TABLE IF NOT EXISTS Fahrt_Fahrer (
     fahrtid INT,
     fahrerid INT,
     PRIMARY KEY (fahrtid, fahrerid),
@@ -74,8 +58,8 @@ CREATE TABLE Fahrt_Fahrer (
     FOREIGN KEY (fahrerid) REFERENCES Fahrer(fahrerid)
 );
 
--- Tabelle: Fahrzeugparameter
-CREATE TABLE Fahrzeugparameter (
+-- 07: Fahrzeugparameter
+CREATE TABLE IF NOT EXISTS Fahrzeugparameter (
     fahrzeugparameterid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
@@ -85,8 +69,8 @@ CREATE TABLE Fahrzeugparameter (
     FOREIGN KEY (fahrtid) REFERENCES Fahrt(fahrtid)
 );
 
--- Tabelle: Beschleunigung
-CREATE TABLE Beschleunigung (
+-- 08: Beschleunigung
+CREATE TABLE IF NOT EXISTS Beschleunigung (
     beschleunigungid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
@@ -96,8 +80,8 @@ CREATE TABLE Beschleunigung (
     FOREIGN KEY (fahrtid) REFERENCES Fahrt(fahrtid)
 );
 
--- Tabelle: Diagnose
-CREATE TABLE Diagnose (
+-- 09: Diagnose
+CREATE TABLE IF NOT EXISTS Diagnose (
     diagnoseid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
@@ -106,8 +90,8 @@ CREATE TABLE Diagnose (
     FOREIGN KEY (fahrtid) REFERENCES Fahrt(fahrtid)
 );
 
--- Tabelle: Wartung
-CREATE TABLE Wartung (
+-- 10: Wartung
+CREATE TABLE IF NOT EXISTS Wartung (
     wartungid INT AUTO_INCREMENT PRIMARY KEY,
     fahrzeugid INT,
     datum DATETIME,
@@ -115,10 +99,13 @@ CREATE TABLE Wartung (
     FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
 );
 
--- Tabelle: success_logs (für Logging der Konvertierung)
-CREATE TABLE success_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    message TEXT,
-    duration FLOAT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+-- 11: Geraet_Installation
+CREATE TABLE IF NOT EXISTS Geraet_Installation (
+    geraet_installationid INT AUTO_INCREMENT PRIMARY KEY,
+    geraetid INT,
+    fahrzeugid INT,
+    einbau_datum DATE,
+    ausbau_datum DATE,
+    FOREIGN KEY (geraetid) REFERENCES Geraet(geraetid),
+    FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
 );

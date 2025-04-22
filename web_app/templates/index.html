@@ -8,6 +8,20 @@
     </div>
   </div>
 
+  <!-- Admin-Werkzeuge -->
+  <div class="d-flex justify-content-center flex-wrap mb-3">
+    <form action="/import-sql" method="post" class="mx-1 my-1">
+      <button type="submit" class="btn btn-outline-success">📥 SQL-Daten importieren</button>
+    </form>
+    <form action="/reset-mysql" method="post" class="mx-1 my-1">
+      <button type="submit" class="btn btn-outline-danger">🗑️ MySQL löschen</button>
+    </form>
+    <form action="/reset-mongo" method="post" class="mx-1 my-1">
+      <button type="submit" class="btn btn-outline-danger">🗑️ MongoDB löschen</button>
+    </form>
+  </div>
+
+
   <!-- Buttons -->
   <div class="d-flex justify-content-center flex-wrap mb-4">
     <button onclick="location.href='/convert'" class="btn btn-secondary mx-2 my-1">⚙️ Tabellen konvertieren</button>
