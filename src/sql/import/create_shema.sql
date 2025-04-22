@@ -1,5 +1,5 @@
 -- 01: Fahrzeug
-CREATE TABLE Fahrzeug (
+CREATE TABLE IF NOT EXISTS Fahrzeug (
     fahrzeugid INT PRIMARY KEY,
     hersteller VARCHAR(100),
     modell VARCHAR(100),
@@ -7,7 +7,7 @@ CREATE TABLE Fahrzeug (
 );
 
 -- 02: Fahrer
-CREATE TABLE Fahrer (
+CREATE TABLE IF NOT EXISTS Fahrer (
     fahrerid INT PRIMARY KEY,
     vorname CHAR(50),
     nachname CHAR(50),
@@ -17,7 +17,7 @@ CREATE TABLE Fahrer (
 );
 
 -- 03: Fahrer_Fahrzeug
-CREATE TABLE Fahrer_Fahrzeug (
+CREATE TABLE IF NOT EXISTS Fahrer_Fahrzeug (
     fahrerid INT,
     fahrzeugid INT,
     gueltig_ab DATE,
@@ -28,7 +28,7 @@ CREATE TABLE Fahrer_Fahrzeug (
 );
 
 -- 04: Geraet
-CREATE TABLE Geraet (
+CREATE TABLE IF NOT EXISTS Geraet (
     geraetid INT PRIMARY KEY,
     fahrzeugid INT,
     geraet_typ VARCHAR(100),
@@ -38,7 +38,7 @@ CREATE TABLE Geraet (
 );
 
 -- 05: Fahrt
-CREATE TABLE Fahrt (
+CREATE TABLE IF NOT EXISTS Fahrt (
     fahrtid INT PRIMARY KEY,
     fahrzeugid INT,
     geraetid INT,
@@ -50,7 +50,7 @@ CREATE TABLE Fahrt (
 );
 
 -- 06: Fahrt_Fahrer
-CREATE TABLE Fahrt_Fahrer (
+CREATE TABLE IF NOT EXISTS Fahrt_Fahrer (
     fahrtid INT,
     fahrerid INT,
     PRIMARY KEY (fahrtid, fahrerid),
@@ -59,7 +59,7 @@ CREATE TABLE Fahrt_Fahrer (
 );
 
 -- 07: Fahrzeugparameter
-CREATE TABLE Fahrzeugparameter (
+CREATE TABLE IF NOT EXISTS Fahrzeugparameter (
     fahrzeugparameterid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
@@ -70,7 +70,7 @@ CREATE TABLE Fahrzeugparameter (
 );
 
 -- 08: Beschleunigung
-CREATE TABLE Beschleunigung (
+CREATE TABLE IF NOT EXISTS Beschleunigung (
     beschleunigungid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
@@ -81,7 +81,7 @@ CREATE TABLE Beschleunigung (
 );
 
 -- 09: Diagnose
-CREATE TABLE Diagnose (
+CREATE TABLE IF NOT EXISTS Diagnose (
     diagnoseid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
@@ -91,7 +91,7 @@ CREATE TABLE Diagnose (
 );
 
 -- 10: Wartung
-CREATE TABLE Wartung (
+CREATE TABLE IF NOT EXISTS Wartung (
     wartungid INT AUTO_INCREMENT PRIMARY KEY,
     fahrzeugid INT,
     datum DATETIME,
@@ -100,7 +100,7 @@ CREATE TABLE Wartung (
 );
 
 -- 11: Geraet_Installation
-CREATE TABLE Geraet_Installation (
+CREATE TABLE IF NOT EXISTS Geraet_Installation (
     geraet_installationid INT AUTO_INCREMENT PRIMARY KEY,
     geraetid INT,
     fahrzeugid INT,

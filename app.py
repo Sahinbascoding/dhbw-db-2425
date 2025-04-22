@@ -45,10 +45,6 @@ def test_mysql_connection():
 from api.router import register_routes
 register_routes(app)
 
-# Datenbank-Reset beim Beenden
-from src.tools.reset_db import cleanup_db
-atexit.register(cleanup_db)
-
 # App starten
 if __name__ == '__main__':
     app.run(debug=False)
