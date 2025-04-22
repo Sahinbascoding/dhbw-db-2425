@@ -5,6 +5,8 @@ import os
 from datetime import datetime, date
 from infrastructure.config.config import (MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB_NAME, MONGO_DB_NAME,
                                           ALLOWED_TABLES, ALLOWED_EXTENSIONS, MONGO_CONFIG_STRING)
+from src.no_sql.convert_to_mongo import convert_single_table, convert_embedded
+from src.no_sql.utils import fix_dates  # <- ausgelagerte Hilfsfunktion
 
 
 # -----------------------------------------------------------------------------
@@ -100,20 +102,14 @@ def convert_to_mongodb(selected_tables, embed=True):
     meta = MetaData()
     meta.reflect(bind=mysql_engine)
 
-    def fix_dates(data):
-        """
-        Converts datetime.date objects to datetime.datetime to ensure compatibility
-        with MongoDB.
-        """
-        for key, value in data.items():
-            if isinstance(value, date):
-                data[key] = datetime(value.year, value.month, value.day)
-        return data
-
     total_inserted = 0
 
-    ERGAENZEN
+    if embed:
+        total_inserted = convert_embedded(selected_tables, mysql_engine, db)
+    else:
+        for table in selected_tables:
+            total_inserted += convert_single_table(table, mysql_engine, db)
 
     session.close()
     print("Conversion completed.")
-    return total_inserted  #
+    return total_inserted

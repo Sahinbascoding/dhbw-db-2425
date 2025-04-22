@@ -4,7 +4,7 @@ import pymongo
 import logging
 from infrastructure.database.helpers.helpers import (allowed_file, get_tables, convert_to_mongodb,
                                                      insert_message_to_mysql, get_db)
-from infrastructure.config.config import MONGO_CONFIG_STRING, MONGO_DB_NAME, ALLOWED_TABLES
+from infrastructure.config.config import MONGO_CONFIG_STRING, MONGO_DB_NAME, ALLOWED_TABLES, MYSQL_TABLES
 from sqlalchemy import MetaData, text
 from flask import flash
 from infrastructure.database.helpers.helpers import get_mysql_connection
@@ -252,7 +252,7 @@ def register_routes(app):
             embed = request.form.get('embed')
 
             if convert_all == 'true':
-                selected_tables = ALLOWED_TABLES
+                selected_tables = MYSQL_TABLES
 
             do_embed = (embed == 'true')
             start_time = datetime.now()
