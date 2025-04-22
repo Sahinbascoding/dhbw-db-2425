@@ -2,21 +2,26 @@
 
 ## 📚 Project Overview  
 **DHBW-DB_2023_24_App**  
-**Version:** 0.1 
+**Version:** 1.0 (Final)
 
 ---
+
 ### 📝 Description
-This project is a **Database Management Web Application** for MySQL and MongoDB. It provides features such as table conversion, data import, and report generation.
-
-### 🚀 Features:
-- ⚙️ **Table Conversion:** Convert tables to MongoDB (embedded or flat).
-- 📥 **Data Import:** Upload and insert JSON documents.
-- 📊 **Report Generation:** Run custom SQL reports.
-- ✏️ **Table Editing:** Modify table entries with automatic change logging.
-- 🔄 **Reload Functionality:** Refresh data tables.
+This project is a **Database Management Web Application** for MySQL and MongoDB. It enables importing, converting, resetting, and analyzing data through a user-friendly Flask interface.
 
 ---
-## 💻 Installation & Start
+
+### 🚀 Features
+- ⚙️ **Table Conversion**: Migrate MySQL tables to MongoDB (flat or embedded).
+- 📥 **Data Import (CSV/JSON)**: Import structured datasets into SQL and NoSQL.
+- 🧹 **Database Reset**: Reset MySQL & MongoDB via one-click web buttons.
+- ✏️ **Table Editing**: View and edit SQL tables directly via web.
+- 📊 **Report Generation**: Predefined analytics on database contents.
+- 🔄 **Dynamic Reload**: Refresh displayed table content via AJAX.
+
+---
+
+## 💻 Installation & Launch
 
 ```bash
 git clone https://github.com/Sahinbascoding/dhbw-db-2425.git
@@ -26,90 +31,86 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Erstelle dann eine `.env` Datei mit den nötigen Variablen (MySQL/MongoDB-Verbindung usw.).
+> Erstelle anschließend eine `.env` Datei im Root-Verzeichnis:
+
+```env
+SECRET_KEY=dein-secret-key
+
+MYSQL_HOST=127.0.0.1
+MYSQL_USER=root
+MYSQL_PASSWORD=deinpasswort
+MYSQL_DB_NAME=dein_db_name
+
+MONGO_HOST=localhost
+MONGO_PORT=27017
+MONGO_DB_NAME=dein_mongo_db
+```
+
+Dann kannst du die Anwendung starten mit:
 
 ```bash
 flask run
 ```
 
-Zum Abschluss:  
-Erstelle die Datenbank anschließend entweder **automatisch** mit `main_import.sql` oder **manuell** über die drei SQL-Schritte.
+---
+
+## 🧰 Datenbankverwaltung per Web-App
+
+### Über die Benutzeroberfläche möglich:
+- 🔁 **MySQL importieren:** Führt `create_shema.sql`, `load_data.sql`, `data_cleanup.sql` in dieser Reihenfolge aus.
+- 🧹 **MySQL & MongoDB löschen:** Leere beide Datenbanken vollständig per Knopfdruck.
+- 📦 **JSON hochladen:** Lade z. B. `unfall.json` manuell hoch und füge Inhalte ein.
+- 🔄 **Konvertieren:** Wandle SQL-Daten in MongoDB-Collections um.
 
 ---
-## 🧰 Datenbank erstellen
 
-### ✅ Automatisch 
-```bash
-mysql -u root -p --local-infile=1 telematik < src/sql/import/main_import.sql
+## ⚙️ Manuelle SQL-Nutzung
 
-```
+Falls gewünscht, kannst du die SQL-Dateien auch manuell ausführen:
 
-### ⚙️ Manuell  
-Falls nötig zuerst:
 ```bash
 mysql -u root -p
 ```
+
 ```sql
 SET GLOBAL local_infile = 1;
 EXIT;
 ```
-Dann:
+
 ```bash
-mysql -u root -p telematik < src/sql/import/create_shema.sql
-mysql -u root -p --local-infile=1 telematik < src/sql/import/load_data.sql
-mysql -u root -p telematik < src/sql/import/data_cleanup.sql
+mysql -u root -p < src/sql/import/create_shema.sql
+mysql -u root -p --local-infile=1 < src/sql/import/load_data.sql
+mysql -u root -p < src/sql/import/data_cleanup.sql
 ```
 
 ---
-## 📂 Project Structure
+
+## 📂 Project Structure (Excerpt)
+
 ```
-├── app.py
-├── .env
-├── requirements.txt
-├── README.md
-├── .gitignore
-│
-├── src
-│   ├── sql
-│   │   ├── import
-│   │   │   ├── create_shema.sql
-│   │   │   ├── load_data.sql
-│   │   │   ├── data_cleanup.sql
-│   │   │   ├── main_import.sql
-│   │   ├── report/
-│   ├── no_sql/
-│
-├── web-app
-│   ├── api/routes
-│   │   └── route.py
-│   ├── infrastructure
-│   │   ├── config/config.py
-│   │   └── database/helpers/helpers.py
-│   ├── static
-│   │   ├── images/dhbw_logo.png
-│   │   └── styles.css
-│   └── templates
-│       ├── index.html
-│       ├── layout.html
-│       ├── add_data.html
-│       ├── convert.html
-│       ├── reports.html
-│       ├── select_table.html
-│       ├── view_table.html
-│
-├── data
-│   ├── fahrzeug.csv
-│   ├── unfall.json
-│
-├── doc
-│   ├── ER-Modell.drawio / .png / .pdf
-│   ├── TODO
+├── app.py                       # Entry point – startet Flask + Engine
+├── .env                         # Lokale Konfigurationswerte
+├── requirements.txt             # Benötigte Pakete
+├── src/
+│   ├── tools/                   # Import-/Reset-Skripte für Datenbanken
+│   ├── sql/import/             # SQL-Dateien für Schema, Daten, Cleanup
+├── web_app/
+│   ├── api/router.py           # Zentrale Routing-Registrierung
+│   ├── api/routes/             # Einzelrouten wie convert, import, reset...
+│   ├── infrastructure/         # config.py + DB-Helper
+│   ├── templates/              # HTML-Dateien (Jinja2)
+│   ├── static/                 # CSS, Images
+├── data/                       # CSV-/JSON-Beispieldaten
+├── doc/                        # ER-Modell, Zeichnungen, Fortschritt
 ```
 
 ---
-### 📈 Version
-This README uses the version displayed from the project: **Version 0.1**.
 
-### 💡 Contributors
-- 🧑‍💻 Ata Sahinbas, Luis Kilic
-- 🏫 Organization: DHBW Stuttgart
+## ✅ Version & Team
+
+**Version:** 1.0  
+**Stand:** 22.04.2025  
+
+**Contributors:**
+- 🧑‍💻 Ata Sahinbas, Luis Kilic  
+- 🏫 DHBW Stuttgart
