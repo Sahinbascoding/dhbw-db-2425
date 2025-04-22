@@ -8,7 +8,7 @@ CREATE TABLE Fahrzeug (
     fahrzeugid INT PRIMARY KEY,
     hersteller VARCHAR(100),
     modell VARCHAR(100),
-    baujahr DATE
+    baujahr YEAR
 );
 
 -- Tabelle: Fahrer
@@ -33,7 +33,7 @@ CREATE TABLE Geraet (
 
 -- Tabelle: Geraet_Installation
 CREATE TABLE Geraet_Installation (
-    geraet_installationid INT PRIMARY KEY,
+    geraet_installationid INT AUTO_INCREMENT PRIMARY KEY,
     geraetid INT,
     fahrzeugid INT,
     einbau_datum DATE,
@@ -76,7 +76,7 @@ CREATE TABLE Fahrt_Fahrer (
 
 -- Tabelle: Fahrzeugparameter
 CREATE TABLE Fahrzeugparameter (
-    fahrzeugparameterid INT PRIMARY KEY,
+    fahrzeugparameterid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
     geschwindigkeit FLOAT,
@@ -87,7 +87,7 @@ CREATE TABLE Fahrzeugparameter (
 
 -- Tabelle: Beschleunigung
 CREATE TABLE Beschleunigung (
-    beschleunigungid INT PRIMARY KEY,
+    beschleunigungid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
     x_achse FLOAT,
@@ -98,7 +98,7 @@ CREATE TABLE Beschleunigung (
 
 -- Tabelle: Diagnose
 CREATE TABLE Diagnose (
-    diagnoseid INT PRIMARY KEY,
+    diagnoseid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
     zeitstempel DATETIME,
     fehlercode TEXT,
@@ -108,7 +108,7 @@ CREATE TABLE Diagnose (
 
 -- Tabelle: Wartung
 CREATE TABLE Wartung (
-    wartungid INT PRIMARY KEY,
+    wartungid INT AUTO_INCREMENT PRIMARY KEY,
     fahrzeugid INT,
     datum DATETIME,
     beschreibung TEXT,

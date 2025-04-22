@@ -9,7 +9,7 @@ VALUES
 DELETE FROM fahrt_fahrer WHERE fahrtid IN (100001, 100003);
 
 -- Zusätzlich Daten in Tabelle fahrt_fahrer, damit Beziehung klar wird: Ein Fahrer kann mehrere Fahrten haben, eine Fahrt kann mehrere Fahrer haben (n:m)
-INSERT INTO fahrt_fahrer (fahrtid, fahrerid) VALUES 
+INSERT IGNORE INTO fahrt_fahrer (fahrtid, fahrerid) VALUES 
 (30, 5),  -- Fahrt 30 hat jetzt zwei Fahrer (4 & 5)
 (16, 11); -- Fahrt 16 hat jetzt zwei Fahrer (10 & 11)
 
@@ -21,5 +21,3 @@ VALUES
     (FLOOR(RAND() * 100000) + 1, TIMESTAMPADD(MINUTE, FLOOR(RAND() * 120), '2024-01-01 08:00:00'), 'E0656', 'Kritischer Fehler: 6'),
     (FLOOR(RAND() * 100000) + 1, TIMESTAMPADD(MINUTE, FLOOR(RAND() * 120), '2024-01-01 08:00:00'), 'E0097', 'Warnung: 34'),
     (FLOOR(RAND() * 100000) + 1, TIMESTAMPADD(MINUTE, FLOOR(RAND() * 120), '2024-01-01 08:00:00'), 'E0069', 'Kritischer Fehler: 1');
-
-
