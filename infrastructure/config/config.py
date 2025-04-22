@@ -20,8 +20,9 @@ MONGO_CONFIG_STRING = f"mongodb://{MONGO_HOST}:{MONGO_PORT}/"
 ALLOWED_EXTENSIONS = {'json'}
 
 ALLOWED_TABLES = [
-    'ERGAENZEN', 'ERGAENZEN', 'ERGAENZEN', 'ERGAENZEN',
-    'ERGAENZEN', 'ERGAENZEN', 'ERGAENZEN',
-    'ERGAENZEN', 'ERGAENZEN', 'ERGAENZEN', 'ERGAENZEN'
+    'fahrzeug', 'fahrer', 'fahrt', 'fahrt_fahrer', 'fahrzeugparameter',
+    'beschleunigung', 'geraet', 'geraet_installation',
+    'diagnose', 'wartung', 'unfall'
 ]
+
 

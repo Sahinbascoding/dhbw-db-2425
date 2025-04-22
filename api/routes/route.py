@@ -129,8 +129,12 @@ def register_routes(app):
         # -------------------------------------------------------------------------
         if selected_report == "fahrten_fahrer":
             query = """
-               ERGAENZEN
+                SELECT f.fahrerid, f.vorname, f.nachname, COUNT(ff.fahrtid) AS anzahl_fahrten
+                FROM fahrer f
+                JOIN fahrt_fahrer ff ON f.fahrerid = ff.fahrerid
+                GROUP BY f.fahrerid, f.vorname, f.nachname;
             """
+
             cursor.execute(query)
             report_data = cursor.fetchall()
             report_data = [
@@ -201,8 +205,14 @@ def register_routes(app):
             conn = get_mysql_connection()  # ✅ Uses default DB settings from .env/config
 
             query = """
-                ERGAENZEN
+                SELECT
+                    table_name,
+                    table_rows AS total_rows,
+                    CREATE_TIME AS last_updated
+                FROM information_schema.tables
+                WHERE table_schema = %s;
             """
+
 
             # ✅ Ensure cursor returns dictionaries instead of tuples
             cursor = conn.cursor(dictionary=True)
@@ -249,7 +259,7 @@ def register_routes(app):
 
                 with mysql_engine.connect() as conn:
                     try:
-                        count_query = text(f"ERGAENZEN")
+                        count_query = text(f"SELECT COUNT(*) FROM {selected_table}")
                         total_rows_query = conn.execute(count_query)
                         total_rows = total_rows_query.scalar()
 
@@ -343,7 +353,8 @@ def register_routes(app):
                 # MySQL Update
                 cursor = db.cursor()
                 set_clause = ", ".join(f"{key} = %s" for key in update_data.keys())
-                query = f"ERGAENZEN"
+                query = f"UPDATE {table_name} SET {set_clause} WHERE id = %s"
+
                 values = list(update_data.values()) + [row_id]
                 cursor.execute(query, values)
                 db.commit()

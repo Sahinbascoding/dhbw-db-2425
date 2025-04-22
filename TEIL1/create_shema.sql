@@ -1,7 +1,7 @@
+-- Datenbank zurücksetzen
 DROP DATABASE IF EXISTS telematik;
 CREATE DATABASE telematik;
 USE telematik;
-
 
 -- Tabelle: Fahrzeug
 CREATE TABLE Fahrzeug (
@@ -106,17 +106,6 @@ CREATE TABLE Diagnose (
     FOREIGN KEY (fahrtid) REFERENCES Fahrt(fahrtid)
 );
 
--- Tabelle: Unfall
-CREATE TABLE Unfall (
-    unfallid INT PRIMARY KEY,
-    fahrtid INT,
-    unfall_zeit DATETIME,
-    unfall_ort TEXT,
-    schaden INT,
-    unfall_ursache TEXT,
-    FOREIGN KEY (fahrtid) REFERENCES Fahrt(fahrtid)
-);
-
 -- Tabelle: Wartung
 CREATE TABLE Wartung (
     wartungid INT PRIMARY KEY,
@@ -124,4 +113,12 @@ CREATE TABLE Wartung (
     datum DATETIME,
     beschreibung TEXT,
     FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
+);
+
+-- Tabelle: success_logs (für Logging der Konvertierung)
+CREATE TABLE success_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    message TEXT,
+    duration FLOAT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
