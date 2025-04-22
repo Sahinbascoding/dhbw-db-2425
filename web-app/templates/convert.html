@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Datenbank-Konvertierung</title>
+  <!-- Bootstrap CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+  />
+  <!-- Optional: Custom styles file -->
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='styles.css') }}"
+  />
+  <script>
+    function toggleAll(source) {
+      const checkboxes = document.querySelectorAll('input[name="tables"]');
+      checkboxes.forEach(checkbox => {
+          checkbox.checked = source.checked;
+      });
+    }
+  </script>
+</head>
+<body>
+
+  <!-- Navbar with DHBW Logo -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+        <img
+          src="{{ url_for('static', filename='images/dhbw_logo.png') }}"
+          alt="DHBW Stuttgart Logo"
+          height="40"
+          class="d-inline-block align-text-center me-2"
+        />
+        Datenbank-Verwaltung
+      </a>
+    </div>
+  </nav>
+
+  <div class="container my-5">
+    <!-- Heading -->
+    <h1 class="mb-4 text-start">Datenbank-Konvertierung</h1>
+
+    <!-- Success Message -->
+    {% if success_message %}
+      <div class="alert alert-success" role="alert">
+        {{ success_message }}
+      </div>
+    {% endif %}
+
+    <p class="text-start">
+      Wählen Sie die MySQL-Tabellen zur Konvertierung aus:
+    </p>
+
+    <!-- Conversion Form -->
+    <form action="/convert" method="POST" class="text-start">
+      <!-- "Alle Tabellen" Checkbox -->
+      <div class="form-check mb-2">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="convert_all"
+          name="convert_all"
+          value="true"
+          onclick="toggleAll(this)"
+        />
+        <label class="form-check-label fw-bold" for="convert_all">
+          Alle Tabellen auswählen
+        </label>
+      </div>
+
+      <!-- "Einbetten" Checkbox -->
+      <div class="form-check mb-3">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="embed"
+          name="embed"
+          value="true"
+        />
+        <label class="form-check-label fw-bold" for="embed">
+          Daten einbetten
+        </label>
+      </div>
+
+      <!-- Individual Tables Checkboxes -->
+      <div class="ms-4"> <!-- optional margin-left for indentation -->
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_fahrt"
+            name="tables"
+            value="fahrt"
+          />
+          <label class="form-check-label" for="table_fahrt">
+            📂 Fahrt
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_fahrerdaten"
+            name="tables"
+            value="fahrer"
+          />
+          <label class="form-check-label" for="table_fahrerdaten">
+            📂 Fahrer
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_fahrzeug"
+            name="tables"
+            value="fahrzeug"
+          />
+          <label class="form-check-label" for="table_fahrzeug">
+            📂 Fahrzeug
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_geraetedaten"
+            name="tables"
+            value="geraet"
+          />
+          <label class="form-check-label" for="table_geraetedaten">
+            📂 Geraet
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_fahrzeugparameter"
+            name="tables"
+            value="fahrzeugparameter"
+          />
+          <label class="form-check-label" for="table_fahrzeugparameter">
+            📂 Fahrzeugparameter
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_beschleunigung"
+            name="tables"
+            value="beschleunigung"
+          />
+          <label class="form-check-label" for="table_beschleunigung">
+            📂 Beschleunigung
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_diagnosedaten"
+            name="tables"
+            value="diagnose"
+          />
+          <label class="form-check-label" for="table_diagnosedaten">
+            📂 Diagnose
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_wartung"
+            name="tables"
+            value="wartung"
+          />
+          <label class="form-check-label" for="table_wartung">
+            📂 Wartung
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_fahrt_fahrer"
+            name="tables"
+            value="fahrt_fahrer"
+          />
+          <label class="form-check-label" for="table_fahrt_fahrer">
+            📂 Fahrt-Fahrer
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_geraet_installation"
+            name="tables"
+            value="geraet_installation"
+          />
+          <label class="form-check-label" for="table_geraet_installation">
+            📂 Geraet-Installation
+          </label>
+        </div>
+        <div class="form-check mb-3">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="table_fahrer_fahrzeug"
+            name="tables"
+            value="fahrer_fahrzeug"
+          />
+          <label class="form-check-label" for="table_fahrer_fahrzeug">
+            📂 Fahrer-Fahrzeug
+          </label>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn btn-primary">
+        Konvertieren
+      </button>
+    </form>
+
+    <!-- Back to Main Page Link -->
+    <div class="mt-3">
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">⬅️ Zurück zur Hauptseite</a>
+    </div>
+  </div>
+<p id="conversion-status"></p>
+
+<script>
+    function startConversion() {
+        document.getElementById("conversion-status").innerText = "Konvertierung läuft...";
+
+        fetch('/convert', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("conversion-status").innerText = `Konvertierung abgeschlossen: ${data.converted} Datensätze verarbeitet.`;
+        })
+        .catch(error => {
+            document.getElementById("conversion-status").innerText = "Fehler bei der Konvertierung!";
+        });
+    }
+
+    document.getElementById("convert-button").addEventListener("click", startConversion);
+</script>
+
+  <!-- Bootstrap JS (optional) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
+</body>
+</html>

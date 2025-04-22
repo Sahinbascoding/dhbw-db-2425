@@ -1,13 +1,13 @@
 ## To-Do Liste
 
 ## Teil 1 ➡️
-- [ ] ER-Modell als PDF 🔴
-- [ ] SQL-Skripte zur Erstellung des DB-Schemas (lauffähig für MySQL) 🔴
+- [X] ER-Modell als PDF 🔴
+- [X] SQL-Skripte zur Erstellung des DB-Schemas (lauffähig für MySQL) 🔴
 
 ## Teil 2 ➡️
-- [ ] Import aller Daten in das MySQL-Schema, evtl. Datenbereinigung (über SQL/MySQL) 🔴
-- [ ] Alle Importe innerhalb von Transaktionen 🔴
-- [ ] Lauffähige App erstellen (Programmrumpf ergänzen) 🔴
+- [X] Import aller Daten in das MySQL-Schema, evtl. Datenbereinigung (über SQL/MySQL) 🔴
+- [X] Alle Importe innerhalb von Transaktionen 🔴
+- [X] Lauffähige App erstellen (Programmrumpf ergänzen) 🔴
 - [ ] Konvertierung der Tabellen nach MongoDB, einzeln und als embedded Collection (SQL und/oder Python)
 - [ ] Logging von Konvertierungen soll in eine Log-Tabelle geschrieben werden (als SQL codiert) 🔴
 - [ ] Report 1: Durchschnittliche Geschwindigkeit und Motortemperatur für alle Fahrten im März 2024 (als SQL codiert, Datum bzgl. Fahrt) 🔴

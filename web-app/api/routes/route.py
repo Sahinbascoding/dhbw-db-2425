@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import pymongo
+import logging
 from infrastructure.database.helpers.helpers import (allowed_file, get_tables, convert_to_mongodb,
                                                      insert_message_to_mysql, get_db)
 from infrastructure.config.config import MONGO_CONFIG_STRING, MONGO_DB_NAME, ALLOWED_TABLES
@@ -9,27 +10,57 @@ from flask import flash
 from infrastructure.database.helpers.helpers import get_mysql_connection
 from flask import render_template, request, redirect, url_for, jsonify
 
+logger = logging.getLogger(__name__)
 
-# -----------------------------------------------------------------------------
-# Homepage Route
-# -----------------------------------------------------------------------------
+
 def register_routes(app):
     """Registers all Flask routes inside app.py."""
 
     @app.route('/')
     def index():
-        """Homepage that displays available MySQL tables."""
         tables = get_tables()
-        return render_template('index.html', tables=tables, app_version='0.2.14')
+        logger.info("Loaded table list for index page.")
 
-    # Version Route for Frontend Fetch
+        mysql_stats = {}
+        try:
+            conn = get_mysql_connection()
+            query = """
+                SELECT
+                    table_name,
+                    table_rows AS total_rows,
+                    CREATE_TIME AS last_updated
+                FROM information_schema.tables
+                WHERE table_schema = %s;
+            """
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(query, ("telematik",))
+            rows = cursor.fetchall()
+            for row in rows:
+                mysql_stats[row["table_name"]] = {
+                    "total_rows": row["total_rows"] if row["total_rows"] is not None else "N/A",
+                    "last_updated": row["last_updated"] if row["last_updated"] else None
+                }
+            cursor.close()
+            conn.close()
+            logger.info("MySQL stats loaded successfully.")
+        except Exception as e:
+            mysql_stats["error"] = str(e)
+            logger.error(f"Error loading MySQL stats: {e}")
+
+        stats = {
+            "MySQL": mysql_stats,
+            "MongoDB": {}
+        }
+
+        return render_template(
+            'index.html',
+            tables=tables,
+            app_version='0.2.14',
+            stats=stats
+        )
 
     @app.route('/add-data', methods=['GET', 'POST'])
     def add_data():
-        """
-        Page that allows users to upload a JSON file and insert its contents into
-        a MongoDB collection (either existing or a new one).
-        """
         client = pymongo.MongoClient(MONGO_CONFIG_STRING)
         db = client[MONGO_DB_NAME]
         success_message = None
@@ -37,34 +68,21 @@ def register_routes(app):
 
         if request.method == 'POST':
             collection_choice = request.form.get('collection_choice')
+            logger.info("Processing data import...")
 
-            # Existing collection
             if collection_choice == 'existing':
                 selected_table = request.form.get('table_name')
                 if selected_table not in ALLOWED_TABLES:
                     error_message = "Invalid table selected."
-                    return render_template(
-                        'add_data.html',
-                        tables=ALLOWED_TABLES,
-                        success_message=success_message,
-                        error_message=error_message
-                    )
+                    return render_template('add_data.html', tables=ALLOWED_TABLES, success_message=success_message, error_message=error_message)
                 target_collection = selected_table
-
             else:
-                # Create a new collection
                 new_collection_name = request.form.get('new_collection_name')
                 if not new_collection_name or new_collection_name.strip() == "":
                     error_message = "Please provide a valid name for the new collection."
-                    return render_template(
-                        'add_data.html',
-                        tables=ALLOWED_TABLES,
-                        success_message=success_message,
-                        error_message=error_message
-                    )
+                    return render_template('add_data.html', tables=ALLOWED_TABLES, success_message=success_message, error_message=error_message)
                 target_collection = new_collection_name.strip()
 
-            # Check if a JSON file was uploaded
             if 'json_file' not in request.files:
                 error_message = "No file uploaded."
             else:
@@ -75,7 +93,6 @@ def register_routes(app):
                     file_content = file.read().decode('utf-8')
                     try:
                         data = json.loads(file_content)
-
                         if isinstance(data, dict):
                             db[target_collection].insert_one(data)
                             success_message = "Successfully added one document!"
@@ -87,29 +104,20 @@ def register_routes(app):
                                 error_message = "The JSON file contains an empty array."
                         else:
                             error_message = "The JSON file must contain either an object or an array of objects."
-
+                        logger.info(success_message or error_message)
                     except json.JSONDecodeError as exc:
                         error_message = f"Invalid JSON format: {exc}"
+                        logger.error(error_message)
                 else:
                     error_message = "Invalid file type. Please upload a .json file."
 
-        return render_template(
-            'add_data.html',
-            tables=ALLOWED_TABLES,
-            success_message=success_message,
-            error_message=error_message
-        )
+        return render_template('add_data.html', tables=ALLOWED_TABLES, success_message=success_message, error_message=error_message)
 
     @app.route('/reports', methods=['GET', 'POST'])
     def reports():
-        """
-        Page that allows users to run reports using MySQL queries instead of MongoDB aggregation.
-        """
-        conn = get_mysql_connection()  # ✅ Uses default DB settings from .env/config
-
+        conn = get_mysql_connection()
         available_reports = {
-            "fahrten_fahrer": "Anzahl der Fahrten pro Fahrer",
-            "fahrten_fahrer": "Anzahl der Fahrten pro Fahrer",
+            "fahrten_fahrer": "Anzahl der Fahrten pro Fahrer"
         }
 
         if request.method == 'POST':
@@ -120,13 +128,8 @@ def register_routes(app):
             page = request.args.get('page', 1, type=int)
 
         report_data = []
-
-        # Connect to MySQL
         cursor = conn.cursor()
 
-        # -------------------------------------------------------------------------
-        # 🚗 Report: Anzahl der Fahrten pro Fahrer
-        # -------------------------------------------------------------------------
         if selected_report == "fahrten_fahrer":
             query = """
                 SELECT f.fahrerid, f.vorname, f.nachname, COUNT(ff.fahrtid) AS anzahl_fahrten
@@ -134,20 +137,16 @@ def register_routes(app):
                 JOIN fahrt_fahrer ff ON f.fahrerid = ff.fahrerid
                 GROUP BY f.fahrerid, f.vorname, f.nachname;
             """
-
             cursor.execute(query)
             report_data = cursor.fetchall()
             report_data = [
                 {"fahrerID": row[0], "vorname": row[1], "nachname": row[2], "anzahl_fahrten": row[3]}
                 for row in report_data]
+            logger.info("Report 'fahrten_fahrer' loaded successfully.")
 
-        # Close MySQL connection
         cursor.close()
         conn.close()
 
-        # -------------------------------------------------------------------------
-        # Pagination
-        # -------------------------------------------------------------------------
         items_per_page = 10
         total_items = len(report_data)
         total_pages = (total_items + items_per_page - 1) // items_per_page
@@ -156,89 +155,53 @@ def register_routes(app):
         end = start + items_per_page
         page_data = report_data[start:end]
 
-        return render_template(
-            'reports.html',
-            available_reports=available_reports,
-            report_data=page_data,
-            selected_report=selected_report,
-            page=page,
-            total_pages=total_pages
-        )
-    # Add more routes here...
+        return render_template('reports.html', available_reports=available_reports, report_data=page_data, selected_report=selected_report, page=page, total_pages=total_pages)
 
     @app.route('/database-stats', methods=['GET'])
     def get_database_stats():
-        """Fetch statistics from both MongoDB and MySQL."""
-        stats = {
-            "MongoDB": {},
-            "MySQL": {}
-        }
-
-        # -------------------- ✅ Fetch MongoDB Stats ✅ --------------------
+        stats = {"MongoDB": {}, "MySQL": {}}
         try:
-            mongo_client = pymongo.MongoClient(MONGO_CONFIG_STRING)
-            mongo_db = mongo_client[MONGO_DB_NAME]
-
-            collections = mongo_db.list_collection_names()
-            if not collections:
-                stats["MongoDB"]["error"] = "No collections found"
-
-            for collection_name in collections:
-                collection = mongo_db[collection_name]
-                total_rows = collection.count_documents({})
-
-                # Fetch last updated time from _id field
-                last_updated_doc = collection.find_one(sort=[("_id", -1)])
-                last_updated_time = last_updated_doc["_id"].generation_time.strftime(
-                    '%Y-%m-%d %H:%M:%S') if last_updated_doc else "N/A"
-
-                stats["MongoDB"][collection_name] = {
-                    "total_rows": total_rows,
-                    "last_updated": last_updated_time
-                }
-
-        except Exception as e:
-            stats["MongoDB"]["error"] = str(e)
-
-        # -------------------- ✅ Fetch MySQL Stats ✅ --------------------
-        try:
-            conn = get_mysql_connection()  # ✅ Uses default DB settings from .env/config
-
+            conn = get_mysql_connection()
             query = """
-                SELECT
-                    table_name,
-                    table_rows AS total_rows,
-                    CREATE_TIME AS last_updated
+                SELECT table_name, table_rows AS total_rows, CREATE_TIME AS last_updated
                 FROM information_schema.tables
                 WHERE table_schema = %s;
             """
-
-
-            # ✅ Ensure cursor returns dictionaries instead of tuples
             cursor = conn.cursor(dictionary=True)
             cursor.execute(query, ("telematik",))
             tables = cursor.fetchall()
-
-            # ✅ Process MySQL results correctly
             for table in tables:
-                stats["MySQL"][table["table_name"]] = {
-                    "total_rows": table["total_rows"] if table["total_rows"] is not None else "N/A",
-                    "last_updated": table["last_updated"] if table["last_updated"] else "N/A"
+                normalized = {k.lower(): v for k, v in table.items()}
+                stats["MySQL"][normalized["table_name"]] = {
+                    "total_rows": normalized.get("total_rows", "N/A"),
+                    "last_updated": normalized.get("last_updated", "N/A")
                 }
-
             cursor.close()
             conn.close()
-
+            logger.info("/database-stats: MySQL stats fetched.")
         except Exception as e:
             stats["MySQL"]["error"] = str(e)
+            logger.error(f"MySQL stats error: {e}")
+
+        try:
+            client = pymongo.MongoClient(MONGO_CONFIG_STRING)
+            db = client[MONGO_DB_NAME]
+            for name in db.list_collection_names():
+                count = db[name].count_documents({})
+                last_doc = db[name].find_one(sort=[("_id", -1)])
+                stats["MongoDB"][name] = {
+                    "total_rows": count,
+                    "last_updated": last_doc["_id"].generation_time.strftime('%Y-%m-%d %H:%M:%S') if last_doc else "N/A"
+                }
+            logger.info("/database-stats: MongoDB stats fetched.")
+        except Exception as e:
+            stats["MongoDB"]["error"] = str(e)
+            logger.error(f"MongoDB stats error: {e}")
 
         return jsonify(stats)
 
     @app.route('/view-table', methods=['GET', 'POST'])
     def view_table():
-        """
-        Page that lets users query a MySQL table and view rows with pagination.
-        """
         from app import mysql_engine
         if request.method in ['POST', 'GET']:
             selected_table = (
@@ -253,7 +216,6 @@ def register_routes(app):
                 meta = MetaData()
                 meta.reflect(bind=mysql_engine)
                 table = meta.tables[selected_table]
-
                 rows = []
                 total_rows = 0
 
@@ -267,43 +229,28 @@ def register_routes(app):
                         query = table.select().limit(rows_per_page).offset(offset)
                         result = conn.execute(query)
 
-                        # Convert rows to a list of dictionaries
                         if hasattr(result, 'keys'):
                             rows = [dict(zip(result.keys(), row)) for row in result]
                         else:
                             rows = [row._asdict() for row in result]
-
+                        logger.info(f"{len(rows)} rows loaded from {selected_table}.")
                     except Exception as exc:
-                        print(f"Error processing rows: {exc}")
+                        logger.error(f"Error processing rows from {selected_table}: {exc}")
                         rows = []
 
                 total_pages = (total_rows + rows_per_page - 1) // rows_per_page
 
-                return render_template(
-                    'view_table.html',
-                    table_name=selected_table,
-                    rows=rows,
-                    page=page,
-                    total_pages=total_pages,
-                    rows_per_page=rows_per_page,
-                    selected_table=selected_table
-                )
+                return render_template('view_table.html', table_name=selected_table, rows=rows, page=page, total_pages=total_pages, rows_per_page=rows_per_page, selected_table=selected_table)
 
-        # If no table is selected, redirect to the main page
         return redirect(url_for('index'))
 
     @app.route('/convert', methods=['GET', 'POST'])
     def convert():
-        """
-        Page that allows users to convert selected MySQL tables to MongoDB, optionally
-        embedding related tables into a single 'embedded' collection.
-        """
         if request.method == 'POST':
             selected_tables = request.form.getlist('tables')
             convert_all = request.form.get('convert_all')
             embed = request.form.get('embed')
 
-            # If user selects 'convert all', override selected_tables
             if convert_all == 'true':
                 selected_tables = ALLOWED_TABLES
 
@@ -312,26 +259,23 @@ def register_routes(app):
 
             try:
                 if selected_tables:
-                    # Perform conversion
                     num_inserted_rows = convert_to_mongodb(selected_tables, do_embed)
-
-                    # Calculate and store duration
                     end_time = datetime.now()
                     duration = (end_time - start_time).total_seconds()
 
                     success_message = f"Conversion of {num_inserted_rows} items completed!"
                     insert_message_to_mysql(success_message, duration)
+                    logger.info(success_message)
 
                     return render_template('convert.html', success_message=success_message)
-
                 return render_template('convert.html', success_message="No tables selected.")
-
             except Exception as exc:
                 end_time = datetime.now()
                 duration = (end_time - start_time).total_seconds()
 
                 error_message = f"Error during conversion: {str(exc)}"
                 insert_message_to_mysql(error_message, duration)
+                logger.error(error_message)
 
                 return render_template('convert.html', success_message=error_message)
 
@@ -343,6 +287,7 @@ def register_routes(app):
             db = get_db(table_name)
         except Exception as e:
             flash(f"Database error: {e}", "danger")
+            logger.error(f"Database error in update route: {e}")
             return redirect(url_for('view_table', selected_table=table_name))
 
         row_id = request.form.get('id')
@@ -350,7 +295,6 @@ def register_routes(app):
 
         try:
             if table_name in ALLOWED_TABLES:
-                # MySQL Update
                 cursor = db.cursor()
                 set_clause = ", ".join(f"{key} = %s" for key in update_data.keys())
                 query = f"UPDATE {table_name} SET {set_clause} WHERE id = %s"
@@ -360,12 +304,12 @@ def register_routes(app):
                 db.commit()
                 cursor.close()
             else:
-                # MongoDB Update
                 db.update_one({"id": int(row_id)}, {"$set": update_data})
 
             flash(f"Row updated successfully in {table_name}", "success")
+            logger.info(f"Row updated in {table_name}, ID={row_id}")
         except Exception as e:
             flash(f"Error updating row: {str(e)}", "danger")
+            logger.error(f"Update error in {table_name}: {e}")
 
         return redirect(url_for('view_table', selected_table=table_name))
-
