@@ -1,9 +1,4 @@
--- Datenbank zurücksetzen
-DROP DATABASE IF EXISTS telematik;
-CREATE DATABASE telematik;
-USE telematik;
-
--- Tabelle: Fahrzeug
+-- 01: Fahrzeug
 CREATE TABLE Fahrzeug (
     fahrzeugid INT PRIMARY KEY,
     hersteller VARCHAR(100),
@@ -11,7 +6,7 @@ CREATE TABLE Fahrzeug (
     baujahr YEAR
 );
 
--- Tabelle: Fahrer
+-- 02: Fahrer
 CREATE TABLE Fahrer (
     fahrerid INT PRIMARY KEY,
     vorname CHAR(50),
@@ -21,28 +16,7 @@ CREATE TABLE Fahrer (
     email VARCHAR(100)
 );
 
--- Tabelle: Geraet
-CREATE TABLE Geraet (
-    geraetid INT PRIMARY KEY,
-    fahrzeugid INT,
-    geraet_typ VARCHAR(100),
-    hersteller VARCHAR(100),
-    modell VARCHAR(100),
-    FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
-);
-
--- Tabelle: Geraet_Installation
-CREATE TABLE Geraet_Installation (
-    geraet_installationid INT AUTO_INCREMENT PRIMARY KEY,
-    geraetid INT,
-    fahrzeugid INT,
-    einbau_datum DATE,
-    ausbau_datum DATE,
-    FOREIGN KEY (geraetid) REFERENCES Geraet(geraetid),
-    FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
-);
-
--- Tabelle: Fahrer_Fahrzeug
+-- 03: Fahrer_Fahrzeug
 CREATE TABLE Fahrer_Fahrzeug (
     fahrerid INT,
     fahrzeugid INT,
@@ -53,7 +27,17 @@ CREATE TABLE Fahrer_Fahrzeug (
     FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
 );
 
--- Tabelle: Fahrt
+-- 04: Geraet
+CREATE TABLE Geraet (
+    geraetid INT PRIMARY KEY,
+    fahrzeugid INT,
+    geraet_typ VARCHAR(100),
+    hersteller VARCHAR(100),
+    modell VARCHAR(100),
+    FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
+);
+
+-- 05: Fahrt
 CREATE TABLE Fahrt (
     fahrtid INT PRIMARY KEY,
     fahrzeugid INT,
@@ -65,7 +49,7 @@ CREATE TABLE Fahrt (
     FOREIGN KEY (geraetid) REFERENCES Geraet(geraetid)
 );
 
--- Tabelle: Fahrt_Fahrer
+-- 06: Fahrt_Fahrer
 CREATE TABLE Fahrt_Fahrer (
     fahrtid INT,
     fahrerid INT,
@@ -74,7 +58,7 @@ CREATE TABLE Fahrt_Fahrer (
     FOREIGN KEY (fahrerid) REFERENCES Fahrer(fahrerid)
 );
 
--- Tabelle: Fahrzeugparameter
+-- 07: Fahrzeugparameter
 CREATE TABLE Fahrzeugparameter (
     fahrzeugparameterid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
@@ -85,7 +69,7 @@ CREATE TABLE Fahrzeugparameter (
     FOREIGN KEY (fahrtid) REFERENCES Fahrt(fahrtid)
 );
 
--- Tabelle: Beschleunigung
+-- 08: Beschleunigung
 CREATE TABLE Beschleunigung (
     beschleunigungid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
@@ -96,7 +80,7 @@ CREATE TABLE Beschleunigung (
     FOREIGN KEY (fahrtid) REFERENCES Fahrt(fahrtid)
 );
 
--- Tabelle: Diagnose
+-- 09: Diagnose
 CREATE TABLE Diagnose (
     diagnoseid INT AUTO_INCREMENT PRIMARY KEY,
     fahrtid INT,
@@ -106,7 +90,7 @@ CREATE TABLE Diagnose (
     FOREIGN KEY (fahrtid) REFERENCES Fahrt(fahrtid)
 );
 
--- Tabelle: Wartung
+-- 10: Wartung
 CREATE TABLE Wartung (
     wartungid INT AUTO_INCREMENT PRIMARY KEY,
     fahrzeugid INT,
@@ -115,10 +99,13 @@ CREATE TABLE Wartung (
     FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
 );
 
--- Tabelle: success_logs (für Logging der Konvertierung)
-CREATE TABLE success_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    message TEXT,
-    duration FLOAT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+-- 11: Geraet_Installation
+CREATE TABLE Geraet_Installation (
+    geraet_installationid INT AUTO_INCREMENT PRIMARY KEY,
+    geraetid INT,
+    fahrzeugid INT,
+    einbau_datum DATE,
+    ausbau_datum DATE,
+    FOREIGN KEY (geraetid) REFERENCES Geraet(geraetid),
+    FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
 );

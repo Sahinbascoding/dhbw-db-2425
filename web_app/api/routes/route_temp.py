@@ -4,11 +4,12 @@ import pymongo
 import logging
 from infrastructure.database.helpers.helpers import (allowed_file, get_tables, convert_to_mongodb,
                                                      insert_message_to_mysql, get_db)
-from infrastructure.config.config import MONGO_CONFIG_STRING, MONGO_DB_NAME, ALLOWED_TABLES, MYSQL_TABLES
+from infrastructure.config.config import MONGO_CONFIG_STRING, MONGO_DB_NAME, ALLOWED_TABLES, MYSQL_TABLES, MYSQL_DB_NAME
 from sqlalchemy import MetaData, text
 from flask import flash
 from infrastructure.database.helpers.helpers import get_mysql_connection
 from flask import render_template, request, redirect, url_for, jsonify
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,47 +18,7 @@ def register_routes(app):
     """Registers all Flask routes inside app.py."""
 
     @app.route('/')
-    def index():
-        tables = get_tables()
-        logger.info("Loaded table list for index page.")
-
-        mysql_stats = {}
-        try:
-            conn = get_mysql_connection()
-            query = """
-                SELECT
-                    table_name,
-                    table_rows AS total_rows,
-                    CREATE_TIME AS last_updated
-                FROM information_schema.tables
-                WHERE table_schema = %s;
-            """
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute(query, ("telematik",))
-            rows = cursor.fetchall()
-            for row in rows:
-                mysql_stats[row["table_name"]] = {
-                    "total_rows": row["total_rows"] if row["total_rows"] is not None else "N/A",
-                    "last_updated": row["last_updated"] if row["last_updated"] else None
-                }
-            cursor.close()
-            conn.close()
-            logger.info("MySQL stats loaded successfully.")
-        except Exception as e:
-            mysql_stats["error"] = str(e)
-            logger.error(f"Error loading MySQL stats: {e}")
-
-        stats = {
-            "MySQL": mysql_stats,
-            "MongoDB": {}
-        }
-
-        return render_template(
-            'index.html',
-            tables=tables,
-            app_version='0.2.14',
-            stats=stats
-        )
+    
 
     @app.route('/add-data', methods=['GET', 'POST'])
     def add_data():
@@ -168,7 +129,7 @@ def register_routes(app):
                 WHERE table_schema = %s;
             """
             cursor = conn.cursor(dictionary=True)
-            cursor.execute(query, ("telematik",))
+            cursor.execute(query, (MYSQL_DB_NAME,))
             tables = cursor.fetchall()
             for table in tables:
                 normalized = {k.lower(): v for k, v in table.items()}
