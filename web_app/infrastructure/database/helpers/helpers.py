@@ -71,7 +71,7 @@ def get_mysql_connection():
     )
 
 
-# Add this function to `helpers.py`
+
 def get_db(table_name=None):
     """
     Returns a database connection based on the table name:
@@ -113,3 +113,22 @@ def convert_to_mongodb(selected_tables, embed=True):
     session.close()
     print("Conversion completed.")
     return total_inserted
+
+def log_conversion_to_mysql(source_table, target_collection, status, duration):
+    """
+    Inserts a log entry into the Conversion_Log table after a table has been converted.
+    """
+    try:
+        conn = get_mysql_connection()
+        cursor = conn.cursor()
+        query = """
+            INSERT INTO Conversion_Log (source_table, target_collection, status, duration_seconds, timestamp)
+            VALUES (%s, %s, %s, %s, NOW());
+        """
+        cursor.execute(query, (source_table, target_collection, status, duration))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except mysql.connector.Error as err:
+        print(f"Error writing conversion log to MySQL: {err}")
+

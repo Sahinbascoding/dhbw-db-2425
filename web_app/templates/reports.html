@@ -3,171 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <title>Reports</title>
-  <!-- Bootstrap CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-  />
-  <!-- (Optional) Custom styles file -->
-  <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='styles.css') }}"
-  />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 <body>
 
-  <!-- Navbar with DHBW Logo -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('index') }}">
-        <img
-          src="{{ url_for('static', filename='images/dhbw_logo.png') }}"
-          alt="DHBW Stuttgart Logo"
-          height="40"
-          class="d-inline-block align-text-center me-2"
-        />
-        Datenbank-Verwaltung
-      </a>
-    </div>
-  </nav>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+      <img src="{{ url_for('static', filename='images/dhbw_logo.png') }}" alt="DHBW Stuttgart Logo" height="40" class="d-inline-block align-text-center me-2" />
+      Datenbank-Verwaltung
+    </a>
+  </div>
+</nav>
 
-  <div class="container my-5">
-    <div class="row mb-3">
-      <div class="col">
-        <h1>Reports</h1>
-      </div>
-    </div>
-
-    <!-- Form to choose report type -->
-    <form method="POST" class="row gy-2 gx-3 align-items-center mb-4">
-      <div class="col-auto">
-        <label for="report_type" class="form-label me-2 fw-bold">Report auswählen:</label>
-      </div>
-      <div class="col-auto">
-        <select
-          name="report_type"
-          id="report_type"
-          class="form-select"
-          style="width:auto; display:inline-block;"
-        >
-          {% for key, name in available_reports.items() %}
-            <option value="{{ key }}" {% if selected_report == key %}selected{% endif %}>
-              {{ name }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-auto">
-        <button type="submit" class="btn btn-primary">Anzeigen</button>
-      </div>
-    </form>
-
-    <!-- Conditional Tables -->
-    {% if report_data and selected_report == "fahrten_fahrer" %}
-      <div class="table-responsive">
-        <table class="table table-striped table-bordered table-hover align-middle">
-          <thead class="table-primary">
-            <tr>
-              <th>FahrerID</th>
-              <th>Vorname</th>
-              <th>Nachname</th>
-              <th>Anzahl Fahrten</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in report_data %}
-              <tr>
-                <td>{{ row.fahrerID }}</td>  <!-- Must match JSON key exactly -->
-                <td>{{ row.vorname }}</td>
-                <td>{{ row.nachname }}</td>
-                <td>{{ row.anzahl_fahrten }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-
-    {% elif report_data and selected_report == "geraete_verteilung" %}
-      <div class="table-responsive">
-        <table class="table table-striped table-bordered table-hover align-middle">
-          <thead class="table-primary">
-            <tr>
-              <th>GeraetID</th>
-              <th>Typ</th>
-              <th>Hersteller</th>
-              <th>Modell</th>
-              <th>Anzahl Fahrzeuge</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in report_data %}
-              <tr>
-                <td>{{ row.geraetID }}</td>
-                <td>{{ row.geraet_typ }}</td>
-                <td>{{ row.hersteller }}</td>
-                <td>{{ row.modell }}</td>
-                <td>{{ row.anzahl_fahrzeuge }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      {% if selected_report %}
-        <p>Keine Daten für diesen Report vorhanden.</p>
-      {% endif %}
-    {% endif %}
-
-    <!-- Pagination Controls -->
-    {% if total_pages > 1 and selected_report %}
-      <nav aria-label="Reports pagination">
-        <ul class="pagination">
-          <!-- Previous Page Link -->
-          <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-            <a
-              class="page-link"
-              href="{{ url_for('reports', page=page-1, report_type=selected_report) }}"
-              tabindex="-1"
-              aria-disabled="true"
-            >
-              Previous
-            </a>
-          </li>
-
-          <!-- Page Numbers -->
-          {% for p in range(1, total_pages + 1) %}
-            <li class="page-item {% if p == page %}active{% endif %}">
-              <a
-                class="page-link"
-                href="{{ url_for('reports', page=p, report_type=selected_report) }}"
-              >
-                {{ p }}
-              </a>
-            </li>
-          {% endfor %}
-
-          <!-- Next Page Link -->
-          <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
-            <a
-              class="page-link"
-              href="{{ url_for('reports', page=page+1, report_type=selected_report) }}"
-            >
-              Next
-            </a>
-          </li>
-        </ul>
-      </nav>
-    {% endif %}
-
-    <div class="mt-3">
-      <a href="{{ url_for('index') }}" class="btn btn-secondary">⬅️ Zurück zur Hauptseite</a>
+<div class="container my-5">
+  <div class="row mb-3">
+    <div class="col">
+      <h1>Reports</h1>
     </div>
   </div>
 
-  <!-- Bootstrap JS (optional) -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-  ></script>
+  <form method="POST" class="row gy-2 gx-3 align-items-center mb-4">
+    <div class="col-auto">
+      <label for="report_type" class="form-label me-2 fw-bold">Report auswählen:</label>
+    </div>
+    <div class="col-auto">
+      <select name="report_type" id="report_type" class="form-select" style="width:auto; display:inline-block;">
+        {% for key, name in available_reports.items() %}
+          <option value="{{ key }}" {% if selected_report == key %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary">Anzeigen</button>
+    </div>
+  </form>
+
+  {% if report_data and selected_report == "fahrten_fahrer" %}
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered table-hover align-middle">
+        <thead class="table-primary">
+          <tr>
+            <th>FahrerID</th>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>Anzahl Fahrten</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report_data %}
+            <tr>
+              <td>{{ row.fahrerID }}</td>
+              <td>{{ row.vorname }}</td>
+              <td>{{ row.nachname }}</td>
+              <td>{{ row.anzahl_fahrten }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% elif report_data and selected_report == "avg_speed_temp_march2024" %}
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered table-hover align-middle">
+        <thead class="table-primary">
+          <tr>
+            <th>Ø Geschwindigkeit (km/h)</th>
+            <th>Ø Motortemperatur (°C)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report_data %}
+            <tr>
+              <td>{{ row.durchschnitt_geschwindigkeit }}</td>
+              <td>{{ row.durchschnitt_motortemperatur }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% elif report_data and selected_report == "drivers_last_15_months" %}
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered table-hover align-middle">
+        <thead class="table-primary">
+          <tr>
+            <th>FahrerID</th>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>Letzte Fahrt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report_data %}
+            <tr>
+              <td>{{ row.fahrerID }}</td>
+              <td>{{ row.vorname }}</td>
+              <td>{{ row.nachname }}</td>
+              <td>{{ row.letzte_fahrt }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% elif report_data and selected_report == "max_speed_per_driver" %}
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered table-hover align-middle">
+        <thead class="table-primary">
+          <tr>
+            <th>FahrerID</th>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>Maximale Geschwindigkeit (km/h)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report_data %}
+            <tr>
+              <td>{{ row.fahrerID }}</td>
+              <td>{{ row.vorname }}</td>
+              <td>{{ row.nachname }}</td>
+              <td>{{ row.max_geschwindigkeit }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% else %}
+    {% if selected_report %}
+      <p>Keine Daten für diesen Report vorhanden.</p>
+    {% endif %}
+  {% endif %}
+
+  {% if total_pages > 1 and selected_report %}
+    <nav aria-label="Reports pagination">
+      <ul class="pagination">
+        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('reports', page=page-1, report_type=selected_report) }}">Previous</a>
+        </li>
+        {% for p in range(1, total_pages + 1) %}
+          <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('reports', page=p, report_type=selected_report) }}">{{ p }}</a>
+          </li>
+        {% endfor %}
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('reports', page=page+1, report_type=selected_report) }}">Next</a>
+        </li>
+      </ul>
+    </nav>
+  {% endif %}
+
+  <div class="mt-3">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">⬅️ Zurück zur Hauptseite</a>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

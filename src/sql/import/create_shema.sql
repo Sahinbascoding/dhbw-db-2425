@@ -42,8 +42,8 @@ CREATE TABLE IF NOT EXISTS Fahrt (
     fahrtid INT PRIMARY KEY,
     fahrzeugid INT,
     geraetid INT,
-    startzeitpunkt DATETIME,
-    endzeitpunkt DATETIME,
+    startzeitpunkt VARCHAR(255),
+    endzeitpunkt VARCHAR(255),   
     route TEXT,
     FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid),
     FOREIGN KEY (geraetid) REFERENCES Geraet(geraetid)
@@ -108,4 +108,14 @@ CREATE TABLE IF NOT EXISTS Geraet_Installation (
     ausbau_datum DATE,
     FOREIGN KEY (geraetid) REFERENCES Geraet(geraetid),
     FOREIGN KEY (fahrzeugid) REFERENCES Fahrzeug(fahrzeugid)
+);
+
+-- 12: Conversion Log
+CREATE TABLE IF NOT EXISTS Conversion_Log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    source_table VARCHAR(255) NOT NULL,
+    target_collection VARCHAR(255) NOT NULL,
+    status VARCHAR(50),
+    duration_seconds FLOAT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );

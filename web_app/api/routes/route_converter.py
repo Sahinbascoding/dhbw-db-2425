@@ -1,9 +1,9 @@
-# Datei: api/routes/route_convert.py
-
 from datetime import datetime
 from flask import render_template, request
 from infrastructure.database.helpers.helpers import (
-    convert_to_mongodb, insert_message_to_mysql
+    convert_to_mongodb,
+    insert_message_to_mysql,
+    log_conversion_to_mysql  # <-- Neu importieren
 )
 from infrastructure.config.config import MYSQL_TABLES
 import logging
@@ -20,27 +20,43 @@ def convert():
             selected_tables = MYSQL_TABLES
 
         do_embed = (embed == 'true')
-        start_time = datetime.now()
 
         try:
             if selected_tables:
-                num_inserted_rows = convert_to_mongodb(selected_tables, do_embed)
-                end_time = datetime.now()
-                duration = (end_time - start_time).total_seconds()
+                start_time = datetime.now()
 
-                success_message = f"Conversion of {num_inserted_rows} items completed!"
-                insert_message_to_mysql(success_message, duration)
+                for table_name in selected_tables:
+                    num_inserted_rows = convert_to_mongodb([table_name], do_embed)
+
+                    end_time = datetime.now()
+                    duration = (end_time - start_time).total_seconds()
+
+                    log_conversion_to_mysql(
+                        source_table=table_name,
+                        target_collection=f"{table_name}_embedded" if do_embed else f"{table_name}_flat",
+                        status="success",
+                        duration=duration
+                    )
+
+                success_message = f"Conversion of {len(selected_tables)} table(s) completed!"
                 logger.info(success_message)
-
                 return render_template('convert.html', success_message=success_message)
+
             return render_template('convert.html', success_message="No tables selected.")
+
         except Exception as exc:
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
 
             error_message = f"Error during conversion: {str(exc)}"
-            insert_message_to_mysql(error_message, duration)
             logger.error(error_message)
+
+            log_conversion_to_mysql(
+                source_table="multiple",
+                target_collection="mongodb",
+                status="error",
+                duration=duration
+            )
 
             return render_template('convert.html', success_message=error_message)
 
