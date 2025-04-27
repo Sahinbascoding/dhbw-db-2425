@@ -15,8 +15,8 @@
 - [X] Report 3: Die höchste jemals gemessene Geschwindigkeit für jeden Fahrer (als SQL codiert) 🔴
 - [X] Hinzufügen der Collection unfall.json in MongoDB 🔴
 - [X] Editieren der MySQL-Tabellen soll in eine Changelog-Tabelle getriggert werden (als SQL codiert) 🔴
-- [ ] Eine Stored Procedure zum Hinzufügen einer neuen Fahrt (als SQL codiert) 🔴
-- [ ] Änderungen sollen immer persistent in die MySQL-Datenbank geschrieben werden 🔴
+- [X] Eine Stored Procedure zum Hinzufügen einer neuen Fahrt (als SQL codiert) 🔴
+- [X] Änderungen sollen immer persistent in die MySQL-Datenbank geschrieben werden 🔴
 
 
 Mögliche Skriptgestaltung:

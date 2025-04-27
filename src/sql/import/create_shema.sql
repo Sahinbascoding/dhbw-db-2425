@@ -37,14 +37,13 @@ CREATE TABLE IF NOT EXISTS geraet (
     FOREIGN KEY (fahrzeugid) REFERENCES fahrzeug(fahrzeugid)
 );
 
--- 05: fahrt
 CREATE TABLE IF NOT EXISTS fahrt (
-    fahrtid INT PRIMARY KEY,
+    fahrtid INT AUTO_INCREMENT PRIMARY KEY,
     fahrzeugid INT,
     geraetid INT,
     startzeitpunkt VARCHAR(255),
-    endzeitpunkt VARCHAR(255),   
-    route TEXT,
+    endzeitpunkt VARCHAR(255),
+    route VARCHAR(255),
     FOREIGN KEY (fahrzeugid) REFERENCES fahrzeug(fahrzeugid),
     FOREIGN KEY (geraetid) REFERENCES geraet(geraetid)
 );

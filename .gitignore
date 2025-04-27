@@ -33,3 +33,4 @@ dist/
 
 # Pytest cache
 .pytest_cache/
+doc/project_prompt_dhbw-db-2425.md
