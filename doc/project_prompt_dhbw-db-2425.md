@@ -13,6 +13,7 @@ Nutze diesen Prompt, um direkt mit mir an deinem Datenbankprojekt weiterzuarbeit
 
 ---
 
+
 # 📁 Projektstruktur (Auszug)
 
 ```

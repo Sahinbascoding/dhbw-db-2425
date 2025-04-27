@@ -6,7 +6,7 @@ BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..', '..'))
 sys.path.append(BASE_DIR)
 
 from src.tools.enable_local_infile import enable_local_infile
-from src.tools.import_sql_db1 import import_sql
+from src.tools.import_sql_db import import_sql
 from src.tools.activate_triggers import activate_triggers
 from src.tools.activate_procedures import activate_stored_procedures
 
