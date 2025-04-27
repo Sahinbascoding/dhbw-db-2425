@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 def reports():
     conn = get_mysql_connection()
     available_reports = {
-        "fahrten_fahrer": "Anzahl der Fahrten pro Fahrer",
+        "fahrten_fahrer": "Anzahl der fahrten pro fahrer",
         "avg_speed_temp_march2024": "Ø Geschwindigkeit & Motortemperatur März 2024",
-        "drivers_last_15_months": "Fahrer mit Fahrten in den letzten 15 Monaten",
-        "max_speed_per_driver": "Maximale Geschwindigkeit pro Fahrer"
+        "drivers_last_15_months": "fahrer mit fahrten in den letzten 15 Monaten",
+        "max_speed_per_driver": "Maximale Geschwindigkeit pro fahrer"
     }
 
 

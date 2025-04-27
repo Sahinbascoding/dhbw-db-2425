@@ -2,7 +2,6 @@ from sqlalchemy import MetaData, Table, select
 from src.no_sql.utils import fix_dates
 from infrastructure.config.config import MYSQL_TABLES
 
-
 def convert_single_table(table_name, mysql_engine, db):
     """
     Converts a single MySQL table into a MongoDB collection (1:1 Abbildung).
@@ -22,14 +21,14 @@ def convert_single_table(table_name, mysql_engine, db):
         return len(rows)
     return 0
 
-
 def convert_embedded(tables, mysql_engine, db):
     """
     Converts related MySQL tables into a single embedded MongoDB collection.
-
-    Beispiel: Fahrer mit eingebetteten Fahrten
+    Beispiel: fahrer mit eingebetteten fahrten
     """
-    if not {"fahrer", "fahrt", "fahrt_fahrer"}.issubset(set(tables)):
+    normalized_tables = set([t.lower() for t in tables])
+
+    if not {"fahrer", "fahrt", "fahrt_fahrer"}.issubset(normalized_tables):
         print("[MongoDB] Required tables for embedding (fahrer, fahrt, fahrt_fahrer) not provided.")
         return 0
 
@@ -41,15 +40,14 @@ def convert_embedded(tables, mysql_engine, db):
     fahrt_fahrer = meta.tables["fahrt_fahrer"]
 
     with mysql_engine.connect() as conn:
-        # Hole alle Fahrer
+        # Hole alle fahrer
         fahrer_result = conn.execute(select(fahrer))
         fahrer_docs = []
 
         for f in fahrer_result:
             f_dict = fix_dates(dict(f._mapping))
 
-
-            # Fahrten des Fahrers finden (über Join mit Hilfstabelle)
+            # fahrten des fahrers finden
             join_stmt = (
                 select(fahrt)
                 .select_from(fahrt.join(fahrt_fahrer, fahrt.c.fahrtid == fahrt_fahrer.c.fahrtid))
@@ -68,7 +66,6 @@ def convert_embedded(tables, mysql_engine, db):
         print(f"[MongoDB] Inserted {len(fahrer_docs)} embedded documents into 'fahrer_mit_fahrten'")
         return len(fahrer_docs)
     return 0
-
 
 def convert_to_mongodb(selected_tables, embed=True):
     """
@@ -94,12 +91,21 @@ def convert_to_mongodb(selected_tables, embed=True):
 
     total_inserted = 0
 
-    if embed:
-        total_inserted = convert_embedded(valid_tables, mysql_engine, db)
-    else:
-        for table in valid_tables:
-            total_inserted += convert_single_table(table, mysql_engine, db)
+    normalized_tables = set([t.lower() for t in valid_tables])
+
+    # 1. Embedded Collection nur erzeugen wenn ALLE 3 Tabellen vorhanden
+    if {"fahrer", "fahrt", "fahrt_fahrer"}.issubset(normalized_tables):
+        total_inserted += convert_embedded(["fahrer", "fahrt", "fahrt_fahrer"], mysql_engine, db)
+        
+        # Nach Embedding: Diese 3 Tabellen aus der normalen Liste rausnehmen
+        valid_tables = [t for t in valid_tables if t.lower() not in {"fahrer", "fahrt", "fahrt_fahrer"}]
+
+    # 2. Alle übrigen Tabellen normal konvertieren
+    for table in valid_tables:
+        total_inserted += convert_single_table(table, mysql_engine, db)
 
     session.close()
     print("Conversion completed.")
     return total_inserted
+
+

@@ -2,9 +2,9 @@ SELECT
     AVG(fahrzeugparameter.geschwindigkeit) AS durchschnitt_geschwindigkeit,
     AVG(fahrzeugparameter.motortemperatur) AS durchschnitt_motortemperatur
 FROM 
-    Fahrzeugparameter
+    fahrzeugparameter
 JOIN 
-    Fahrt ON Fahrzeugparameter.fahrtid = Fahrt.fahrtid
+    fahrt ON fahrzeugparameter.fahrtid = fahrt.fahrtid
 WHERE 
-    MONTH(Fahrt.startzeitpunkt) = 3
-    AND YEAR(Fahrt.startzeitpunkt) = 2024;
+    MONTH(fahrt.startzeitpunkt) = 3
+    AND YEAR(fahrt.startzeitpunkt) = 2024;
