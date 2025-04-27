@@ -8,6 +8,7 @@ from web_app.api.routes.route_database_stats import get_database_stats
 from web_app.api.routes.route_import_sql import import_sql_db
 from web_app.api.routes.route_reset_sql import reset_mysql_db
 from web_app.api.routes.route_reset_mongo import reset_mongo_db
+from web_app.api.routes.route_generate_random_fahrt import generate_random_fahrt
 
 
 def register_routes(app):
@@ -23,3 +24,4 @@ def register_routes(app):
     app.add_url_rule('/import-sql', 'import_sql_db', import_sql_db, methods=['POST'])
     app.add_url_rule('/reset-mysql', 'reset_mysql_db', reset_mysql_db, methods=['POST'])
     app.add_url_rule('/reset-mongo', 'reset_mongo_db', reset_mongo_db, methods=['POST'])
+    app.add_url_rule('/generate-random-fahrt', 'generate_random_fahrt', generate_random_fahrt, methods=['POST'])
