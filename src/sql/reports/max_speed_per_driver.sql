@@ -1,15 +1,15 @@
 SELECT 
-    Fahrer.fahrerid,
-    Fahrer.vorname,
-    Fahrer.nachname,
-    MAX(Fahrzeugparameter.geschwindigkeit) AS max_geschwindigkeit
+    fahrer.fahrerid,
+    fahrer.vorname,
+    fahrer.nachname,
+    MAX(fahrzeugparameter.geschwindigkeit) AS max_geschwindigkeit
 FROM 
-    Fahrer
+    fahrer
 JOIN 
-    Fahrt_Fahrer ON Fahrer.fahrerid = Fahrt_Fahrer.fahrerid
+    fahrt_fahrer ON fahrer.fahrerid = fahrt_fahrer.fahrerid
 JOIN 
-    Fahrt ON Fahrt_Fahrer.fahrtid = Fahrt.fahrtid
+    fahrt ON fahrt_fahrer.fahrtid = fahrt.fahrtid
 JOIN 
-    Fahrzeugparameter ON Fahrt.fahrtid = Fahrzeugparameter.fahrtid
+    fahrzeugparameter ON fahrt.fahrtid = fahrzeugparameter.fahrtid
 GROUP BY 
-    Fahrer.fahrerid, Fahrer.vorname, Fahrer.nachname;
+    fahrer.fahrerid, fahrer.vorname, fahrer.nachname;

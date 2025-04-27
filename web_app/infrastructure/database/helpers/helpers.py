@@ -116,13 +116,13 @@ def convert_to_mongodb(selected_tables, embed=True):
 
 def log_conversion_to_mysql(source_table, target_collection, status, duration):
     """
-    Inserts a log entry into the Conversion_Log table after a table has been converted.
+    Inserts a log entry into the conversion_log table after a table has been converted.
     """
     try:
         conn = get_mysql_connection()
         cursor = conn.cursor()
         query = """
-            INSERT INTO Conversion_Log (source_table, target_collection, status, duration_seconds, timestamp)
+            INSERT INTO conversion_log (source_table, target_collection, status, duration_seconds, timestamp)
             VALUES (%s, %s, %s, %s, NOW());
         """
         cursor.execute(query, (source_table, target_collection, status, duration))

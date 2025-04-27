@@ -12,27 +12,44 @@ def index():
     logger.info("Loaded table list for index page.")
 
     mysql_stats = {}
+
     try:
         conn = get_mysql_connection()
-        query = """
-            SELECT
-                table_name,
-                table_rows AS total_rows,
-                CREATE_TIME AS last_updated
+        cursor = conn.cursor(dictionary=True)
+
+        # Hole alle Tabellenamen
+        cursor.execute("""
+            SELECT table_name, IFNULL(create_time, 'N/A') AS last_updated
             FROM information_schema.tables
             WHERE table_schema = %s;
-        """
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(query, (MYSQL_DB_NAME,))
+        """, (MYSQL_DB_NAME,))
         rows = cursor.fetchall()
+
+        # Für jede Tabelle: echten COUNT(*) abfragen
         for row in rows:
-            mysql_stats[row["table_name"]] = {
-                "total_rows": row["total_rows"] if row["total_rows"] is not None else "N/A",
-                "last_updated": row["last_updated"] if row["last_updated"] else None
-            }
+            table_name = row.get("table_name")
+            if table_name:
+                try:
+                    # Hole die exakte Anzahl an Zeilen
+                    cursor.execute(f"SELECT COUNT(*) AS total_rows FROM `{table_name}`")
+                    count_result = cursor.fetchone()
+                    total_rows = count_result.get("total_rows", 0)
+
+                    mysql_stats[table_name] = {
+                        "total_rows": total_rows,
+                        "last_updated": row.get("last_updated", "N/A")
+                    }
+                except Exception as count_err:
+                    logger.error(f"Fehler beim Zählen der Rows in Tabelle {table_name}: {count_err}")
+                    mysql_stats[table_name] = {
+                        "total_rows": "Error",
+                        "last_updated": row.get("last_updated", "N/A")
+                    }
+
         cursor.close()
         conn.close()
         logger.info("MySQL stats loaded successfully.")
+
     except Exception as e:
         mysql_stats["error"] = str(e)
         logger.error(f"Error loading MySQL stats: {e}")

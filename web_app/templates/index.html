@@ -103,13 +103,14 @@
   }
 
   function fetchMongoStats() {
-    fetch('/database-stats')
-      .then(response => response.json())
-      .then(data => {
-        const mongoTableBody = document.querySelector("#mongodb-stats-table tbody");
-        mongoTableBody.innerHTML = "";
-        if (data.MongoDB && Object.keys(data.MongoDB).length > 0) {
-          for (const [collection, stats] of Object.entries(data.MongoDB)) {
+  fetch('/database-stats')
+    .then(response => response.json())
+    .then(data => {
+      const mongoTableBody = document.querySelector("#mongodb-stats-table tbody");
+      mongoTableBody.innerHTML = "";
+      if (data.MongoDB && Object.keys(data.MongoDB).length > 0) {
+        for (const [collection, stats] of Object.entries(data.MongoDB)) {
+          if (collection !== "error") {  // <<< HIER geändert
             mongoTableBody.innerHTML += `
               <tr>
                 <td>${collection}</td>
@@ -119,31 +120,32 @@
             `;
           }
         }
+      }
 
-        const mysqlTableBody = document.querySelector("#mysql-stats-table tbody");
-        mysqlTableBody.innerHTML = "";
-        if (data.MySQL && Object.keys(data.MySQL).length > 0) {
-          for (const [table, stats] of Object.entries(data.MySQL)) {
-            if (table !== "error") {
-              mysqlTableBody.innerHTML += `
-                <tr>
-                  <td>${table}</td>
-                  <td>${stats.total_rows}</td>
-                  <td>${stats.last_updated}</td>
-                </tr>
-              `;
-            }
+      const mysqlTableBody = document.querySelector("#mysql-stats-table tbody");
+      mysqlTableBody.innerHTML = "";
+      if (data.MySQL && Object.keys(data.MySQL).length > 0) {
+        for (const [table, stats] of Object.entries(data.MySQL)) {
+          if (table !== "error") {  // <<< HIER geändert
+            mysqlTableBody.innerHTML += `
+              <tr>
+                <td>${table}</td>
+                <td>${stats.total_rows}</td>
+                <td>${stats.last_updated}</td>
+              </tr>
+            `;
           }
         }
-      })
-      .catch(error => {
-        console.error('Fehler beim Abrufen der DB-Daten:', error);
-        document.querySelector("#mongodb-stats-table tbody").innerHTML =
-          `<tr><td colspan="3" class="text-center text-danger">Fehler beim Laden der MongoDB-Daten</td></tr>`;
-        document.querySelector("#mysql-stats-table tbody").innerHTML =
-          `<tr><td colspan="3" class="text-center text-danger">Fehler beim Laden der MySQL-Daten</td></tr>`;
-      });
-  }
+      }
+    })
+    .catch(error => {
+      console.error('Fehler beim Abrufen der DB-Daten:', error);
+      document.querySelector("#mongodb-stats-table tbody").innerHTML =
+        `<tr><td colspan="3" class="text-center text-danger">Fehler beim Laden der MongoDB-Daten</td></tr>`;
+      document.querySelector("#mysql-stats-table tbody").innerHTML =
+        `<tr><td colspan="3" class="text-center text-danger">Fehler beim Laden der MySQL-Daten</td></tr>`;
+    });
+}
 
   document.addEventListener("DOMContentLoaded", fetchMongoStats);
 </script>

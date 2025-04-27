@@ -1,11 +1,13 @@
+# Datei: web_app/api/routes/route_converter.py
+
 from datetime import datetime
-from flask import render_template, request
+from flask import render_template, request, redirect, url_for, flash
 from infrastructure.database.helpers.helpers import (
     convert_to_mongodb,
     insert_message_to_mysql,
-    log_conversion_to_mysql  # <-- Neu importieren
+    log_conversion_to_mysql
 )
-from infrastructure.config.config import MYSQL_TABLES
+from infrastructure.config.config import MYSQL_TABLES, ALLOWED_TABLES
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,33 +25,46 @@ def convert():
 
         try:
             if selected_tables:
+                logger.info(f"Selected tables for conversion: {selected_tables}")
                 start_time = datetime.now()
 
+                num_inserted_rows = convert_to_mongodb(selected_tables, do_embed)
+
+                end_time = datetime.now()
+                duration = (end_time - start_time).total_seconds()
+
+                successful_conversions = 0  # Zähler neu
+
                 for table_name in selected_tables:
-                    num_inserted_rows = convert_to_mongodb([table_name], do_embed)
+                    try:
+                        log_conversion_to_mysql(
+                            source_table=table_name,
+                            target_collection=f"{table_name}_embedded" if do_embed else f"{table_name}_flat",
+                            status="success",
+                            duration=duration
+                        )
+                        logger.info(f"Logged conversion for table: {table_name}")
+                        successful_conversions += 1
+                    except Exception as log_exc:
+                        logger.error(f"Error logging conversion for table {table_name}: {log_exc}")
 
-                    end_time = datetime.now()
-                    duration = (end_time - start_time).total_seconds()
+                # WICHTIG: Nur eine Flash-Message abhängig von do_embed
+                if do_embed:
+                    flash(f"✅ Erfolgreich {num_inserted_rows} Dokumente eingebettet!", "success")
+                else:
+                    flash(f"✅ Erfolgreich {successful_conversions} Tabellen/Collections konvertiert!", "success")
 
-                    log_conversion_to_mysql(
-                        source_table=table_name,
-                        target_collection=f"{table_name}_embedded" if do_embed else f"{table_name}_flat",
-                        status="success",
-                        duration=duration
-                    )
+                return redirect(url_for('index'))
 
-                success_message = f"Conversion of {len(selected_tables)} table(s) completed!"
-                logger.info(success_message)
-                return render_template('convert.html', success_message=success_message)
 
-            return render_template('convert.html', success_message="No tables selected.")
+            flash("⚠️ Keine Tabellen ausgewählt.", "warning")
+            return redirect(url_for('convert'))
 
         except Exception as exc:
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
 
-            error_message = f"Error during conversion: {str(exc)}"
-            logger.error(error_message)
+            logger.error(f"Fehler bei der Konvertierung: {exc}", exc_info=True)
 
             log_conversion_to_mysql(
                 source_table="multiple",
@@ -58,6 +73,7 @@ def convert():
                 duration=duration
             )
 
-            return render_template('convert.html', success_message=error_message)
+            flash("❌ Fehler bei der Konvertierung! Bitte Logs prüfen.", "danger")
+            return redirect(url_for('convert'))
 
     return render_template('convert.html')

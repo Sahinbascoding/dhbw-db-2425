@@ -27,10 +27,11 @@ ALLOWED_EXTENSIONS = {'json'}
 MYSQL_TABLES = [
     'fahrzeug', 'fahrer', 'fahrer_fahrzeug', 'geraet', 'fahrt',
     'fahrt_fahrer', 'fahrzeugparameter', 'beschleunigung',
-    'diagnose', 'wartung', 'geraet_installation'
+    'diagnose', 'wartung', 'geraet_installation',
+    'conversion_log', 'changelog'
 ]
 
-MONGO_JSON_COLLECTIONS = ['unfall']
+MONGO_JSON_COLLECTIONS = ['unfall','fahrer_mit_fahrten']
 
 ALLOWED_TABLES = MYSQL_TABLES + MONGO_JSON_COLLECTIONS
 
