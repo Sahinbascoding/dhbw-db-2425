@@ -1,37 +1,140 @@
-# DHBW-DB-2425 – README.md
+# 🧰 Datenbankverwaltung per Web-App
 
-## 📚 Project Overview  
-**DHBW-DB_2023_24_App**  
-**Version:** 1.0 (Final)
+Diese Web-Anwendung ermöglicht das Arbeiten mit zwei Datenbankmodellen (MySQL und MongoDB) – **ganz ohne manuelle Skriptausführung**. Alle Aufgaben lassen sich bequem über die Benutzeroberfläche mit einem Klick ausführen.
+
+## 🌐 Funktionen der Web-App
+
+### 🔄 Datenimport (SQL → MySQL)
+
+Beim Klick auf **„SQL-Daten importieren“** wird `initiate_db.py` ausgeführt. Dieses ruft folgende Module auf:
+
+1. **`enable_local_infile.py`**  
+   Aktiviert das Laden lokaler Daten (`enable_local_infile()`).
+
+2. **`import_sql_db.py`**  
+   Führt folgende SQL-Skripte aus – in dieser Reihenfolge:
+   - `create_shema.sql`
+   - `load_data.sql`
+   - `update_fahrt.sql`
+   - `data_cleanup.sql`
+
+3. **`activate_triggers.py`**  
+   Aktiviert Trigger für das Logging in der Changelog-Tabelle.
+
+4. **`activate_procedures.py`**  
+   Aktiviert Stored Procedures zum späteren Hinzufügen von Fahrten.
 
 ---
 
-### 📝 Description
-This project is a **Database Management Web Application** for MySQL and MongoDB. It enables importing, converting, resetting, and analyzing data through a user-friendly Flask interface.
+### 🔁 Konvertierung: MySQL → MongoDB
+
+- **„In MongoDB konvertieren“** ruft `convert_to_mongo.py` auf.
+- Daten werden in MongoDB übertragen.
+- Optional: Erstellung einer **embedded Collection** bei Tabellenauswahl.
+- Die im `create_shema.sql` definierte **Log-Tabelle** wird dabei automatisch mit Konvertierungsdaten gefüllt.
 
 ---
 
-### 🚀 Features
-- ⚙️ **Table Conversion**: Migrate MySQL tables to MongoDB (flat or embedded).
-- 📥 **Data Import (CSV/JSON)**: Import structured datasets into SQL and NoSQL.
-- 🧹 **Database Reset**: Reset MySQL & MongoDB via one-click web buttons.
-- ✏️ **Table Editing**: View and edit SQL tables directly via web.
-- 📊 **Report Generation**: Predefined analytics on database contents.
-- 🔄 **Dynamic Reload**: Refresh displayed table content via AJAX.
+### 📊 Reports (SQL-Abfragen)
+
+Durch Auswahl eines Reports werden entsprechende SQL-Dateien ausgeführt:
+- `avg_speed_temp_march2024.sql`
+- `drivers_last_15_months.sql`
+- `max_speed_per_driver.sql`
 
 ---
 
-## 💻 Installation & Launch
+### 📥 JSON-Daten importieren (MongoDB)
 
-```bash
+- Beim Klick auf **„Daten importieren“** kann z. B. `unfall.json` hochgeladen und über `insert_json_to_mongo.py` in MongoDB eingefügt werden.
+
+---
+
+### 📝 Trigger & Changelog
+
+- Beim Editieren einer MySQL-Tabelle wird automatisch ein zugehöriger Trigger ausgeführt (`Tabelle-Namen_trigger.sql`), der Änderungen in einer **Changelog-Tabelle** protokolliert.
+
+---
+
+### 🧪 Zufällige Fahrt generieren
+
+- Per Knopfdruck wird in der Route `route_generate_random_fahrt.py` mithilfe einer Stored Procedure (`add_fahrt_procedure.sql`) eine Fahrt mit Zufallswerten erzeugt.
+
+---
+
+## ➕ Extras
+
+- **MySQL-Import per Button**: `initiate_db.py` erledigt alles automatisch.
+- **MySQL/MongoDB löschen**: Per Button werden `reset_mysql()` bzw. `reset_mongo()` aufgerufen.
+- **Zufällige Fahrt erstellen**: Siehe oben bei „Zufällige Fahrt generieren“.
+
+---
+
+## ⚙️ Voraussetzungen
+
+### 🔑 MySQL aktivieren
+
+```powershell
+Get-Service | Where-Object { $_.Name -like "*mysql*" }
+net start mysql
+# oder
+net start MySQL80
+```
+
+### 🟢 MongoDB aktivieren
+
+```powershell
+Get-Service | Where-Object { $_.Name -like "*mongo*" }
+net start MongoDB
+# oder
+net start MongoDBServer
+```
+
+### 🐍 Python
+
+[Download Python](https://www.python.org/downloads/)
+
+---
+
+### 🗄️ MySQL
+
+MySQL & MySQL Shell müssen installiert sein:  
+- [MySQL Community Server](https://www.mysql.com/downloads/)  
+- [MySQL Shell](https://dev.mysql.com/downloads/shell/)
+
+### 🍃 MongoDB
+
+MongoDB & MongoDB Shell müssen installiert sein:  
+- [MongoDB Community Edition](https://www.mongodb.com/try/download/community)  
+- [MongoDB Shell](https://www.mongodb.com/try/download/shell)
+
+---
+
+## 💻 Installation & Start
+
+### 🔧 Projekt klonen
+
+```powershell
 git clone https://github.com/Sahinbascoding/dhbw-db-2425.git
 cd dhbw-db-2425
+```
+
+### 🧪 Virtuelle Umgebung erstellen & aktivieren
+
+```powershell
 python -m venv .venv
-.venv\Scripts\activate        # (Windows)
+.venv\Scripts\Activate.ps1
+```
+
+### 📦 Abhängigkeiten installieren
+
+```powershell
 pip install -r requirements.txt
 ```
 
-> Erstelle anschließend eine `.env` Datei im Root-Verzeichnis:
+---
+
+### 🛠️ `.env`-Datei im Root-Verzeichnis erstellen
 
 ```env
 SECRET_KEY=dein-secret-key
@@ -46,71 +149,30 @@ MONGO_PORT=27017
 MONGO_DB_NAME=dein_mongo_db
 ```
 
-Dann kannst du die Anwendung starten mit:
+---
 
-```bash
+### ▶️ App starten
+
+```powershell
 flask run
 ```
 
 ---
 
-## 🧰 Datenbankverwaltung per Web-App
 
-### Über die Benutzeroberfläche möglich:
-- 🔁 **MySQL importieren:** Führt `create_shema.sql`, `load_data.sql`, `data_cleanup.sql` in dieser Reihenfolge aus.
-- 🧹 **MySQL & MongoDB löschen:** Leere beide Datenbanken vollständig per Knopfdruck.
-- 📦 **JSON hochladen:** Lade z. B. `unfall.json` manuell hoch und füge Inhalte ein.
-- 🔄 **Konvertieren:** Wandle SQL-Daten in MongoDB-Collections um.
 
----
 
 ## ⚙️ Manuelle SQL-Nutzung
 
-Falls gewünscht, kannst du die SQL-Dateien auch manuell ausführen:
+Falls gewünscht, können die MYSQL und Python-files auch manuell ausgeführt werden.
+Dafür das README_Manual.md lesen.
 
-```bash
-mysql -u root -p
-```
 
-```sql
-SET GLOBAL local_infile = 1;
-EXIT;
-```
-
-```bash
-mysql -u root -p < src/sql/import/create_shema.sql
-mysql -u root -p --local-infile=1 < src/sql/import/load_data.sql
-mysql -u root -p < src/sql/import/data_cleanup.sql
-```
-
----
-
-## 📂 Project Structure (Excerpt)
-
-```
-├── app.py                       # Entry point – startet Flask + Engine
-├── .env                         # Lokale Konfigurationswerte
-├── requirements.txt             # Benötigte Pakete
-├── src/
-│   ├── tools/                   # Import-/Reset-Skripte für Datenbanken
-│   ├── sql/import/             # SQL-Dateien für Schema, Daten, Cleanup
-├── web_app/
-│   ├── api/router.py           # Zentrale Routing-Registrierung
-│   ├── api/routes/             # Einzelrouten wie convert, import, reset...
-│   ├── infrastructure/         # config.py + DB-Helper
-│   ├── templates/              # HTML-Dateien (Jinja2)
-│   ├── static/                 # CSS, Images
-├── data/                       # CSV-/JSON-Beispieldaten
-├── doc/                        # ER-Modell, Zeichnungen, Fortschritt
-```
-
----
 
 ## ✅ Version & Team
 
 **Version:** 1.0  
-**Stand:** 22.04.2025  
+**Stand:** 18.05.2025
 
 **Contributors:**
 - 🧑‍💻 Ata Sahinbas, Luis Kilic  
-- 🏫 DHBW Stuttgart
