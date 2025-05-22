@@ -31,7 +31,8 @@ MYSQL_TABLES = [
     'conversion_log', 'changelog'
 ]
 
-MONGO_JSON_COLLECTIONS = ['unfall','fahrer_mit_fahrten']
+MONGO_JSON_COLLECTIONS = ['unfall', 'fahrt_embedded']
+
 
 ALLOWED_TABLES = MYSQL_TABLES + MONGO_JSON_COLLECTIONS
 

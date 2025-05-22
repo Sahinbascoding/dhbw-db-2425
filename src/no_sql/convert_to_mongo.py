@@ -1,6 +1,10 @@
-from sqlalchemy import MetaData, Table, select
+from sqlalchemy import MetaData, select
 from src.no_sql.utils import fix_dates
-from infrastructure.config.config import MYSQL_TABLES
+from infrastructure.config.config import MONGO_CONFIG_STRING, MONGO_DB_NAME, MYSQL_TABLES
+from app import mysql_engine, mysql_session
+import pymongo
+from collections import defaultdict
+
 
 def convert_single_table(table_name, mysql_engine, db):
     """
@@ -15,97 +19,154 @@ def convert_single_table(table_name, mysql_engine, db):
         rows = [fix_dates(dict(row._mapping)) for row in result]
 
     if rows:
-        db[table_name].delete_many({})  # optional: vorher leeren
+        db[table_name].delete_many({})
         db[table_name].insert_many(rows)
         print(f"[MongoDB] Inserted {len(rows)} documents into '{table_name}'")
         return len(rows)
     return 0
 
+
 def convert_embedded(tables, mysql_engine, db):
     """
-    Converts related MySQL tables into a single embedded MongoDB collection.
-    Beispiel: fahrer mit eingebetteten fahrten
+    Converts related MySQL tables into embedded MongoDB documents centered around 'fahrt'.
     """
-    normalized_tables = set([t.lower() for t in tables])
-
-    if not {"fahrer", "fahrt", "fahrt_fahrer"}.issubset(normalized_tables):
-        print("[MongoDB] Required tables for embedding (fahrer, fahrt, fahrt_fahrer) not provided.")
-        return 0
-
     meta = MetaData()
     meta.reflect(bind=mysql_engine)
+    normalized = set(t.lower() for t in tables)
 
-    fahrer = meta.tables["fahrer"]
+    if "fahrt" not in normalized:
+        print("[MongoDB] ❌ Tabelle 'fahrt' muss für Embedding enthalten sein.")
+        return 0
+
     fahrt = meta.tables["fahrt"]
-    fahrt_fahrer = meta.tables["fahrt_fahrer"]
+    fahrzeug = meta.tables.get("fahrzeug")
+    geraet = meta.tables.get("geraet")
+    fahrer = meta.tables.get("fahrer")
+    fahrt_fahrer = meta.tables.get("fahrt_fahrer")
+    fahrzeugparameter = meta.tables.get("fahrzeugparameter")
+    diagnose = meta.tables.get("diagnose")
+    beschleunigung = meta.tables.get("beschleunigung")
+    wartung = meta.tables.get("wartung")
+    geraet_installation = meta.tables.get("geraet_installation")
 
     with mysql_engine.connect() as conn:
-        # Hole alle fahrer
-        fahrer_result = conn.execute(select(fahrer))
-        fahrer_docs = []
+        # Hauptfahrten laden
+        fahrt_rows = [fix_dates(dict(r._mapping)) for r in conn.execute(select(fahrt))]
 
-        for f in fahrer_result:
-            f_dict = fix_dates(dict(f._mapping))
+        # Hilfsfunktionen zur Vorverarbeitung
+        def load_map(table, key):
+            return {
+                row._mapping[key]: fix_dates(dict(row._mapping))
+                for row in conn.execute(select(table))
+                if key in row._mapping
+            }
 
-            # fahrten des fahrers finden
+        def load_grouped(table, key):
+            grouped = defaultdict(list)
+            for row in conn.execute(select(table)):
+                r = fix_dates(dict(row._mapping))
+                grouped[r[key]].append(r)
+            return grouped
+
+        # Daten vorbereiten (nur wenn Tabelle ausgewählt ist)
+        fahrzeug_map = load_map(fahrzeug, "fahrzeugid") if "fahrzeug" in normalized else {}
+        geraet_map = load_map(geraet, "geraetid") if "geraet" in normalized else {}
+        fahrzeugparameter_map = load_grouped(fahrzeugparameter, "fahrtid") if "fahrzeugparameter" in normalized else {}
+        diagnose_map = load_grouped(diagnose, "fahrtid") if "diagnose" in normalized else {}
+        beschleunigung_map = load_grouped(beschleunigung, "fahrtid") if "beschleunigung" in normalized else {}
+        wartung_map = load_grouped(wartung, "fahrzeugid") if "wartung" in normalized else {}
+        installation_map = load_grouped(geraet_installation, "fahrzeugid") if "geraet_installation" in normalized else {}
+
+        fahrer_map = defaultdict(list)
+        if "fahrer" in normalized and "fahrt_fahrer" in normalized:
             join_stmt = (
-                select(fahrt)
-                .select_from(fahrt.join(fahrt_fahrer, fahrt.c.fahrtid == fahrt_fahrer.c.fahrtid))
-                .where(fahrt_fahrer.c.fahrerid == f.fahrerid)
+                select(fahrt_fahrer.c.fahrtid, fahrer)
+                .select_from(fahrer.join(fahrt_fahrer, fahrer.c.fahrerid == fahrt_fahrer.c.fahrerid))
             )
+            for row in conn.execute(join_stmt):
+                fahrtid = row._mapping["fahrtid"]
+                fahrer_map[fahrtid].append(fix_dates(dict(row._mapping)))
 
-            fahrten_result = conn.execute(join_stmt)
-            fahrten = [fix_dates(dict(row._mapping)) for row in fahrten_result]
+    # Dokumente zusammenstellen
+    fahrt_docs = []
+    for f in fahrt_rows:
+        fid = f["fahrtid"]
+        vid = f.get("fahrzeugid")
+        gid = f.get("geraetid")
 
-            f_dict["fahrten"] = fahrten
-            fahrer_docs.append(f_dict)
+        if "fahrzeug" in normalized:
+            f["fahrzeug"] = fahrzeug_map.get(vid)
+        if "geraet" in normalized:
+            f["geraet"] = geraet_map.get(gid)
+        if "fahrer" in normalized and "fahrt_fahrer" in normalized:
+            f["fahrer"] = fahrer_map.get(fid)
+        if "fahrzeugparameter" in normalized:
+            f["fahrzeugparameter"] = fahrzeugparameter_map.get(fid)
+        if "diagnose" in normalized:
+            f["diagnose"] = diagnose_map.get(fid)
+        if "beschleunigung" in normalized:
+            f["beschleunigung"] = beschleunigung_map.get(fid)
+        if "wartung" in normalized:
+            f["wartung"] = wartung_map.get(vid)
+        if "geraet_installation" in normalized:
+            f["geraet_installation"] = installation_map.get(vid)
 
-    if fahrer_docs:
-        db["fahrer_mit_fahrten"].delete_many({})
-        db["fahrer_mit_fahrten"].insert_many(fahrer_docs)
-        print(f"[MongoDB] Inserted {len(fahrer_docs)} embedded documents into 'fahrer_mit_fahrten'")
-        return len(fahrer_docs)
+        fahrt_docs.append(f)
+
+    if fahrt_docs:
+        db["fahrt_embedded"].delete_many({})
+        db["fahrt_embedded"].insert_many(fahrt_docs)
+        print(f"[MongoDB] ✅ {len(fahrt_docs)} embedded documents in 'fahrt_embedded'")
+        return len(fahrt_docs)
+
+    print("[MongoDB] ⚠️ Keine Fahrten zum Einbetten gefunden.")
     return 0
+
 
 def convert_to_mongodb(selected_tables, embed=True):
     """
-    Converts specified tables from MySQL to MongoDB. 
-    - embed=True: embeds related data
-    - embed=False: 1:1 conversion per table
+    Main entry point: converts selected MySQL tables to MongoDB.
+    - embed=False: creates 1:1 collections.
+    - embed=True: creates a single embedded 'fahrt_embedded' collection.
     """
-    from app import mysql_engine, mysql_session
-    import pymongo
-    from infrastructure.config.config import MONGO_CONFIG_STRING, MONGO_DB_NAME
-
     client = pymongo.MongoClient(MONGO_CONFIG_STRING)
     db = client[MONGO_DB_NAME]
-
     session = mysql_session()
 
-    # Filter nur gültige SQL-Tabellen
-    valid_tables = [t for t in selected_tables if t in MYSQL_TABLES]
+    sql_tables = [t for t in selected_tables if t in MYSQL_TABLES]
     skipped = [t for t in selected_tables if t not in MYSQL_TABLES]
 
     if skipped:
-        print(f"[MongoDB] Skipping unsupported tables: {skipped}")
+        print(f"[MongoDB] ⚠️ Überspringe ungültige Tabellen: {skipped}")
 
     total_inserted = 0
 
-    normalized_tables = set([t.lower() for t in valid_tables])
+    if not embed:
+        for table in sql_tables:
+            total_inserted += convert_single_table(table, mysql_engine, db)
+        session.close()
+        print("✅ Flat-Konvertierung abgeschlossen.")
+        return total_inserted
 
-    # 1. Embedded Collection nur erzeugen wenn ALLE 3 Tabellen vorhanden
-    if {"fahrer", "fahrt", "fahrt_fahrer"}.issubset(normalized_tables):
-        total_inserted += convert_embedded(["fahrer", "fahrt", "fahrt_fahrer"], mysql_engine, db)
-        
-        # Nach Embedding: Diese 3 Tabellen aus der normalen Liste rausnehmen
-        valid_tables = [t for t in valid_tables if t.lower() not in {"fahrer", "fahrt", "fahrt_fahrer"}]
+    # Prüfung auf notwendige Tabellen für Embedding
+    normalized = set(t.lower() for t in selected_tables)
+    fahrt_relevante = {
+        "fahrer", "fahrt", "fahrt_fahrer", "fahrzeug", "geraet",
+        "fahrzeugparameter", "diagnose", "beschleunigung",
+        "wartung", "geraet_installation"
+    }
 
-    # 2. Alle übrigen Tabellen normal konvertieren
-    for table in valid_tables:
-        total_inserted += convert_single_table(table, mysql_engine, db)
+    selected_relevant = normalized.intersection(fahrt_relevante)
 
+    if "fahrt" not in selected_relevant:
+        print("❌ Für eingebettete Konvertierung muss 'fahrt' ausgewählt sein.")
+        return 0
+
+    if len(selected_relevant) < 2:
+        print("❌ Es müssen mindestens 'fahrt' und eine weitere passende Tabelle ausgewählt werden.")
+        return 0
+
+    total_inserted += convert_embedded(selected_tables, mysql_engine, db)
     session.close()
-    print("Conversion completed.")
+    print("✅ Eingebettete Konvertierung abgeschlossen.")
     return total_inserted
-
-
